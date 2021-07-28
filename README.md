@@ -12,10 +12,8 @@ chmod +x ./build.sh
 ```bash
 tar -xcvf crust-explorer-api@0.0.1.tar.gz
 cd crust-explorer-api
-# ubuntu
-chmod +x ./script.sh
-./script.sh install
-./script.sh start
+yarn start
+(waiting...)
 
 test: GET http://localhost:9527/api/block/last_block?row=3
 
