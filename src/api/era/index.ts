@@ -50,13 +50,11 @@ export async function queryEras({api}: {api: ApiPromise}) {
   //     ]);
   //   console.timeEnd('ddddddd');
   //   chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
-  console.time('qwwww');
   const chainAllAccount: any = [];
   let [overview, waitingValidatorAddress]: any = await Promise.all([
     api.derive.staking.overview(),
     api.derive.staking.waitingInfo(),
   ]);
-  console.timeEnd('qwwww');
   //   debugger;
 
   // const overview = await ;
