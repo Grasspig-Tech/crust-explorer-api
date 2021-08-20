@@ -25,7 +25,7 @@ export const CRUST_SUBSCAN_TOKEN = ''; // crust subscan api token
 
 // export const SPLORER_API = 'https://splorer-api.crustcode.com/api'; // crust storage 存储 api
 export const SPLORER_API = 'https://splorer-api.crust.network/api'; // crust storage 存储 api
-export const SPLORER_AUTHORIZATION = 'crust storage 存储 api 认证'; // crust storage 存储 api 认证
+export const SPLORER_AUTHORIZATION = 'Basic Y3J1c3Q6MTYyNTM0'; // crust storage 存储 api 认证
 
 export const SERVER_SS_API = ' server 酱地址 server 酱地址'; // server 酱地址
 export const SERVER_SS_TOKEN = 'server 酱 token'; // server 酱 token

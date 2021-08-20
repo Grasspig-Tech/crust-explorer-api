@@ -20,7 +20,7 @@ Router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     // debugger;
     let api: ApiPromise = GrantWs.getApi(req.baseUrl + req.path) as ApiPromise;
     const { accounts } = req.body;
-    debugger;
+    // debugger;
     try {
         console.time("时间")
         let result = await getAccounts(accounts, api);
