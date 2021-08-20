@@ -2,6 +2,7 @@ import { ApiPromise } from "@polkadot/api"
 import grantWs from "../../../api/grant-ws"
 import got, { OptionsOfTextResponseBody } from "got"
 import { queryEras } from "../../../api/era"
+import {filterRepeatData} from "../../../util"
 main();
 async function main() {
     const api: ApiPromise = await grantWs.connect("aa");

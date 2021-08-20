@@ -14,7 +14,7 @@ const app = express();
             grantWs.connect("/api/block/last_block"),
             grantWs.connect("/api/era"),
             grantWs.connect("/api/network_overview"),
-            grantWs.connect("/api/account/")
+            // grantWs.connect("/api/account/")
         ])
         route(app);
         app.listen(LISTEN_PORT, () => {
