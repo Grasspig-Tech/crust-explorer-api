@@ -2,11 +2,10 @@
 import path from 'path';
 import fsClientErrorConfig from './api/fs-client/error-config';
 import SSClientErrorConfig from './api/ss-client/error-config';
-import { ErrorConfig } from './interface';
+import {ErrorConfig} from './interface';
 //飞书机器人配置
 export const FS_ROBOT_KEY = '飞书机器人密钥'; //密钥
-export const FS_ROBOT_REQUEST_URL =
-  'webhook address'; //webhook地址
+export const FS_ROBOT_REQUEST_URL = 'webhook address'; //webhook地址
 
 // 环境
 export const IsProduction = process.env.NODE_ENV === 'production';
@@ -25,7 +24,7 @@ export const CRUST_SUBSCAN_TOKEN = ''; // crust subscan api token
 
 // export const SPLORER_API = 'https://splorer-api.crustcode.com/api'; // crust storage 存储 api
 export const SPLORER_API = 'https://splorer-api.crust.network/api'; // crust storage 存储 api
-export const SPLORER_AUTHORIZATION = 'crust storage 存储 api 认证'; // crust storage 存储 api 认证
+export const SPLORER_AUTHORIZATION = 'Basic Y3J1c3Q6MTYyNTM0'; // crust storage 存储 api 认证
 
 export const SERVER_SS_API = ' server 酱地址 server 酱地址'; // server 酱地址
 export const SERVER_SS_TOKEN = 'server 酱 token'; // server 酱 token
@@ -46,12 +45,11 @@ export const RESTART_TIME = 1000; // 重试间隔时间 mm
 export const ERROR_COUNT = 6; // 出现错误后重试次数,运行次数就是+1
 export const CRON_TIME = 6; // 每6小时调用一次
 // 账户密码
-export const ACCOUNT_BACKUP =
-  '账户信息';
+export const ACCOUNT_BACKUP = '账户信息';
 export const ACCOUNT_PASSWD = '账号密码';
 
 // 错误配置
-export const ERROR_CONFIG_LIST: { [config: string]: ErrorConfig[] } = {
+export const ERROR_CONFIG_LIST: {[config: string]: ErrorConfig[]} = {
   fs_client: fsClientErrorConfig,
   ss_client: SSClientErrorConfig,
 };
@@ -61,7 +59,7 @@ export const MAX_FS_ERROR_SEND_NUM = 6;
 // express监听端口
 export const LISTEN_PORT = 9527;
 // 主网路径
-export const WS_NETWORK_URL = "wss://api.decloudf.com/";
+export const WS_NETWORK_URL = 'wss://api.decloudf.com/';
 // export const WS_NETWORK_URL = "wss://api.crust.network/";
 // export const WS_NETWORK_URL = "ws://192.168.1.108:9999/";//本地
 // export const WS_NETWORK_URL = "ws://172.18.128.88:1276/";//旧节点
@@ -69,7 +67,3 @@ export const WS_NETWORK_URL = "wss://api.decloudf.com/";
 
 // 多少个区块才算确认
 export const CONFIRM_BLOCK = 6;
-
-
-
-
