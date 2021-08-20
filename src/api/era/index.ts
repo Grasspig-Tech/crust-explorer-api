@@ -42,19 +42,18 @@ export async function queryEras({api}: {api: ApiPromise}) {
   // let tmpFilter = filterRepeatData;
   // let tmpCompare = compare;
   //   console.time('ddddddd');
-  //   let [overview, waitingValidatorAddress, chainAllAccount]: any =
-  //     await Promise.all([
-  //       api.derive.staking.overview(),
-  //       api.derive.staking.waitingInfo(),
-  //       api.query.system.account.entries(),
-  //     ]);
-  //   console.timeEnd('ddddddd');
-  //   chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
-  const chainAllAccount: any = [];
-  let [overview, waitingValidatorAddress]: any = await Promise.all([
-    api.derive.staking.overview(),
-    api.derive.staking.waitingInfo(),
-  ]);
+  let [overview, waitingValidatorAddress, chainAllAccount]: any =
+    await Promise.all([
+      api.derive.staking.overview(),
+      api.derive.staking.waitingInfo(),
+      api.query.system.account.entries(),
+    ]);
+  chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
+  // const chainAllAccount: any = [];
+  // let [overview, waitingValidatorAddress]: any = await Promise.all([
+  //   api.derive.staking.overview(),
+  //   api.derive.staking.waitingInfo(),
+  // ]);
   //   debugger;
 
   // const overview = await ;
