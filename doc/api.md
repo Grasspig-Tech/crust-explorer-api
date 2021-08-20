@@ -22,13 +22,6 @@ url: /era
 ## 4.network_overview
 method: GET
 url: /network_overview
-## 5.account
-method: POST
-url: /account
-body:
-| name | type |  require|default   |description
-| :----:| :----:   | :----:  | :----: |  :----: |
-| accounts | object[]|yes |   | 从/api/era获取到的accounts数据 [{"address": "5DvTCFuPUXb6Vzg5NB4mFu3Hz95GUqXTMLXib66e4KhF9wxW","role": 1,"accountType": 1},] |
 
 
 

@@ -410,7 +410,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
   // debugger
   //   debugger;
   const members = await queryMember(validatorMapToMember, api, eraInfo);
-  // const accounts = await queryAccount(totalAccount, api);
+  const accounts = await queryAccount(totalAccount, api);
   //   debugger;
   const res: EraResult = {
     eraStat: {
@@ -421,7 +421,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
     members,
     // validatorPledges: resValidators,
     nominators: totalNominators,
-    accounts: totalAccount,
+    accounts,
   };
   // debugger;
   return {
