@@ -2,7 +2,7 @@
   "name": "crust-explorer-api",
   "version": "0.1.0",
   "main": "./src/main.ts",
-  "license": "Apache-2.0 License",
+  "license": "Apache-2.0",
   "scripts": {
     "dev": "set NODE_ENV=development && ts-node-dev ./src/main.ts",
     "start": "pm2 start ./process.json",
