@@ -14,7 +14,7 @@ const app = express();
       Log.error('start is error');
       throw err;
     })
-    .then(res => {
+    .then(() => {
       route(app);
       app.listen(LISTEN_PORT, () => {
         Log.info(`listen api server http://${LISTEN_ADDR}:${LISTEN_PORT}`);

@@ -252,7 +252,7 @@ export async function getBlockTimestamp(
 export function getSortIndex(indexStr: string): string {
   const [blockNum, theIndex] = indexStr.split('-');
   if (theIndex === undefined) {
-    throw new Error('formatIndex传参格式不正确');
+    throw 'index prams is error';
   }
   const baseFixNum = 4; //至少4位数
   let sortIndex = theIndex;
@@ -362,7 +362,7 @@ export function trillionCruFormat(
   formatBasic = 12
 ): string {
   if (Number.isNaN(Number(trillionCru))) {
-    throw new Error(`${trillionCru}转化失败`);
+    throw `${trillionCru} to cru error`;
   }
   const n = new Decimal(trillionCru);
   const res = n.div(`1e${formatBasic}`).toJSON();

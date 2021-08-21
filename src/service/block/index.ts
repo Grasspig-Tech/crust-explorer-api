@@ -1,5 +1,5 @@
 import {ApiPromise} from '@polkadot/api';
-import {queryOneBlockByBlockNum, queryBlockByBlockNums} from '../../api/block';
+import {queryBlockByBlockNums} from '../../api/block';
 // import { Block } from "../../interface"
 /**
  * 通过区块头获取区块，支持多个

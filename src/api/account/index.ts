@@ -1,11 +1,9 @@
+import {AccountInfo} from '@polkadot/types/interfaces';
 // 入口
 import {ApiPromise} from '@polkadot/api';
 import {AccountArg} from '../../interface';
 import {getLocks, trillionCruFormat, getAccountDisplay} from '../../util';
 import {CeAccount} from '../../model';
-// eslint-disable-next-line node/no-unpublished-import
-import {AccountInfo} from '@polkadot/types/interfaces';
-
 /**
  * @param accounts
  * @param api

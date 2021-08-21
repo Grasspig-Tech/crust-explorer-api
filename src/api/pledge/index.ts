@@ -41,7 +41,7 @@ export async function queryOnePledge(
 ): Promise<CeBondedPledge> {
   // debugger;
   if (!address) {
-    throw new Error('address无效');
+    throw 'address not find';
   }
 
   const queryResult = await api.queryMulti([

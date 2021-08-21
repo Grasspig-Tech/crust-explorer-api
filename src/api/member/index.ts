@@ -56,7 +56,7 @@ export async function queryOneMember(
 ): Promise<CeMember> {
   // debugger;
   if (!address) {
-    throw new Error('address无效');
+    throw 'address not find';
   }
   const queryRes = await api.queryMulti([
     [api.query.staking.bonded, address],

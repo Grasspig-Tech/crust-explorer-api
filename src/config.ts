@@ -23,7 +23,7 @@ export const LISTEN_PORT = 9527;
 export const LISTEN_ADDR = '127.0.0.1';
 
 // crust network 路径
-export const WS_MAX_CONN = 10; // 开启的最大链接
+export const WS_MAX_CONN = 2; // 开启的最大链接
 export const WS_NETWORK_URLS = ['wss://api-maxwell.crust.network'];
 // export const WS_NETWORK_URL = 'wss://api-maxwell.crust.network';
 // export const WS_NETWORK_URL = 'wss://api.decloudf.com/';

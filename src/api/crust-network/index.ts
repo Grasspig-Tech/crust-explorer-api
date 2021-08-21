@@ -12,46 +12,64 @@ class CrustWsPool {
   }
   // 初始化
   public async Init(): Promise<Conn[]> {
+    const len = this.urls.length;
+    const maxLen = WS_MAX_CONN * len;
     return new Promise<Conn[]>((resolve, reject) => {
-      let allNum = 0;
-      let err: any = null;
+      let index = 0; // 当前 conns 索引
+      let allCount = 0; // urls 总循环次数
+      // 遍历所有链接
       this.urls.forEach(url => {
-        let index = 0; // 保证链接成功一个以上链接
-        let sucNum = 0; // 记录所有链接
+        let count = 0; // url 总次数
+        let sucCount = 0; // url 成功次数
         const next = () => {
-          index++;
-          allNum = this.conns.push(new Conn());
-          this.conns[allNum - 1]
+          count++; // url 总次数增加
+          allCount++; // urls 总数增加
+          // 新建一个 Conn
+          index = this.conns.push(new Conn()) - 1;
+          this.conns[index]
             .Init(url)
             .then(() => {
-              sucNum++;
-              if (index <= WS_MAX_CONN) {
+              // 成功
+              sucCount++;
+              // 如果总次数还没超过最大限制，继续 next
+              if (count < WS_MAX_CONN) {
                 next();
+              } else {
+                Log.info(
+                  `conn crust server ${url} , set count: ${WS_MAX_CONN} - suc: ${sucCount}`
+                );
+                // 相等了退出
+                if (allCount === maxLen && index >= 1) {
+                  Log.info(
+                    `conn crust server set count: ${maxLen} - suc: ${allCount}`
+                  );
+                  resolve(this.conns);
+                }
               }
             })
-            .catch(er => {
-              this.conns.pop();
-              next();
-              err = er;
+            .catch(err => {
+              // 如果总次数还没超过最大限制，继续 next
+              if (count <= WS_MAX_CONN) {
+                // 出错了，把最后一个删除,索引等下自动更新
+                this.conns.pop();
+                // 继续 next()
+                next();
+              } else {
+                Log.info(
+                  `conn crust server ${url} , set count: ${WS_MAX_CONN} - suc: ${sucCount}`
+                );
+                // 如果全都错误
+                if (allCount === maxLen && index === 0) {
+                  Log.info(
+                    `conn crust server set count: ${maxLen} - suc: ${index + 1}`
+                  );
+                  reject(err);
+                }
+              }
             });
         };
         next(); // 开始逐次执行数组中的函数
-        Log.info(
-          `conn crust server ${url} , set count: ${WS_MAX_CONN} - suc: ${sucNum}`
-        );
-        allNum += sucNum;
       });
-      // TODO BUG
-      // end
-      Log.info(
-        `conn crust server set count: ${
-          WS_MAX_CONN * this.urls.length
-        } - suc: ${allNum}`
-      );
-      if (allNum === 0) reject(err);
-      else {
-        resolve(this.conns);
-      }
     });
   }
   // 获取 conn

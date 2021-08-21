@@ -34,13 +34,13 @@ import {CeNominator} from '../../model';
 export async function queryEras({api}: {api: ApiPromise}) {
   // debugger;
   /* 获取所有账户 */
-  // eslint-disable-next-line prefer-const
   let [overview, waitingValidatorAddress, chainAllAccount]: any =
     await Promise.all([
       api.derive.staking.overview(),
       api.derive.staking.waitingInfo(),
       api.query.system.account.entries(),
     ]);
+  overview = overview ? overview : undefined;
   chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
   waitingValidatorAddress = waitingValidatorAddress.info.map((it: any) => {
     return {
@@ -168,8 +168,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
       // address: string,//存储账户，不能是控制账户
       //     role: number,//1为验证人，2为候选验证人
       //     rank: number
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      return it.map((item: any, curIndex: number) => {
+      return it.map((item: any) => {
         const role: Role =
           tmpIndex === 0 ? Role.Validator : Role.WaitingValidator;
         return {

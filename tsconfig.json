@@ -6,8 +6,6 @@
     "rootDir": "./src",
     "outDir": "./compile",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "moduleResolution": "node",
