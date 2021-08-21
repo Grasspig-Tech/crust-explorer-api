@@ -8,7 +8,7 @@
 *.lock
 node_modules/
 build/
-logs/
+log/
 temp/
 *.log
 *.tar

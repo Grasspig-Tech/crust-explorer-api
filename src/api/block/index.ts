@@ -70,7 +70,7 @@ export async function queryOneBlockByBlockNum(
       events = blockInfo.events;
       extrinsics = blockInfo.extrinsics;
       // debugger;
-      author = blockInfo.author.toHuman();
+      author = blockInfo.author?.toHuman();
     } catch (error) {
       logger.error(error);
       console.error(error);

@@ -6,16 +6,6 @@ import {CeAccount} from '../../model';
 // eslint-disable-next-line node/no-unpublished-import
 import {AccountInfo} from '@polkadot/types/interfaces';
 
-// export interface AccountArg {
-//     address: string,
-//     role?: number,//1为验证人，2为候选验证人,3为提名人
-//     accountType: number,//1为存储账户，2为控制账户
-//     isCouncilMember?: number,
-//     isEvmContract?: number,
-//     isRegistrar?: number,
-//     isTechcommMember?: number,
-//     // api: ApiPromise
-// }
 /**
  * @param accounts
  * @param api
@@ -30,9 +20,6 @@ export async function queryAccount(
   const accountsMapToQueryMutlti = accounts.map(it => {
     return [api.query.system.account, it.address];
   });
-  // let electionVotingMapToQueryMulti = accounts.map(it => {
-  //     return [api.query.elections.voting, it.address]
-  // })
   const accountDisplayArgs = accounts.map(it => ({address: it.address}));
   const queryRes = await Promise.all([
     api.queryMulti(accountsMapToQueryMutlti as any),
@@ -41,7 +28,6 @@ export async function queryAccount(
       accounts.map(it => it.address),
       api
     ),
-    // api.queryMulti(electionVotingMapToQueryMulti as any),
   ]);
 
   const accountDisplays = queryRes[1];
@@ -50,15 +36,12 @@ export async function queryAccount(
   const res: CeAccount[] = accountsInfo.map(
     (it: AccountInfo, curIndex: number) => {
       const data = it.data.toJSON();
-
       const free: any = Number(data.free); //余额，加上保留的就是总余额
-      // const miscFrozen: any = Number(data.miscFrozen);//锁定
       const reserved: any = Number(data.reserved); //保留
       const feeFrozen: any = Number(data.feeFrozen); //冻结金额
       return {
         nonce: it.nonce.toJSON(),
         balance: trillionCruFormat(free + reserved),
-        // balanceLock: trillionCruFormat(miscFrozen),
         balanceLock: trillionCruFormat(queryRes[2].stakingLock[curIndex]),
         bonded: trillionCruFormat(feeFrozen),
         reserved: trillionCruFormat(reserved),

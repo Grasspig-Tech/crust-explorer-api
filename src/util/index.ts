@@ -4,8 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import Decimal from 'decimal.js';
 import {ApiPromise} from '@polkadot/api';
-// import { RegistrationJudgement } from "@polkadot/types/interfaces/identity/types"
-// import { DeriveAccountRegistration } from "@polkadot/api-derive/types"
 import {
   ClassifyArg,
   ClassifyResult,
@@ -183,7 +181,6 @@ export function filterRepeatData(repeatData: any[], key?: string | string[]) {
 // let res = classifyIdentify([{ type: 'aa', data: ['11', '22'] }, { type: 'bb', data: ['11', '33'] }, { type: 'cc', data: ['22', '44'] }]);
 // debugger;
 export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
-  const allTypes = arg.map(it => it.type);
   const datas = arg
     .map(it => it.data)
     .reduce((prev, cur) => [...prev, ...cur], []);
@@ -193,8 +190,6 @@ export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
       filterRepeatDatas.push(item);
     }
   });
-  const classifyResult: ClassifyResult[] = [];
-
   const result: ClassifyResult[] = filterRepeatDatas.map(item => {
     const types = (arg.filter(it => it.data.includes(item)) as any).reduce(
       (prev: string[], cur: ClassifyArg) => [...prev, cur.type],

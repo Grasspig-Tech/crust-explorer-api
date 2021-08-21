@@ -1,6 +1,5 @@
 // 入口
 import {ApiPromise} from '@polkadot/api';
-// import { queryCeValidatorByValidatorHash } from "../validator"
 import {
   EraResult,
   ClassifyResult,
@@ -51,13 +50,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
   });
 
   // debugger;
-  // {activeEra,activeEraStart,currentEra,currentIndex,validatorCount,validators}
   const activeEra: number = overview.activeEra.toJSON();
-  // let rr = await api.query.staking.erasStartSessionIndex(activeEra)
-  // let ii = await api.query.session.currentIndex()
-  // console.log(rr.toJSON())
-  // console.log(ii.toJSON())
-  // debugger;
   const activeEraStart: number =
     (overview.activeEraStart.toJSON() as number) / 1000;
   const validatorCount: number = overview.validatorCount.toJSON() as number;
