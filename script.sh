@@ -1,57 +1,72 @@
-#!/usr/bin/env bash
-# 说 明：管理程序
-# 作 者：花妆男
-# 时 间：2021年4月9日
+#!/bin/bash
+# des：manage node app shell
+# author：huazhuangnan
+# time：2021-4-9
 set -u
-CRTDIR=$(pwd) # 当前目录
-NAME='crust-explorer-api' # 进程
-# 初始化
-init(){
-  # 目录
-  if [ $(echo $CRTDIR |grep $NAME |wc -l) -eq 0 ];then
-	  cd "/${HOME}/${NAME}"
+# centos and ubunt install pkg
+# $1 pkg
+install_pkg(){
+  local pkg = $1
+  local pkgCmd = ''
+  which apt-get > /dev/null
+  if [ $? -eq 0 ]; then
+   pkgCmd = 'apt-get'
   fi
+  which yum > /dev/null
+  if [ $? -eq 0 ]; then
+   pkgCmd = 'yum'
+  fi
+  `$pkgCmd install -y $pkg`
+  wait
 }
-# 停止
+# app status
 status(){
-  init
   yarn status
 }
-# 停止
+# app stop
 stop(){
-  init
   yarn stop
 }
-# 启动
+# app start
 start(){
-  init
   yarn start
 }
-# 安装 ubuntu
+# app install
+# if have param, set npm registry is taobao
 install(){
-  init
-  # 更新
-  apt-get update -y && apt-get upgrade -y && apt-get autoclean -y
-  # 安装依赖
+  which curl > /dev/null
+  if [ $? -eq 1 ]; then
+    apt-get install
+  fi
+  # if not find node
   which node > /dev/null
   if [ $? -eq 1 ]; then
     echo 'install nvm'
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-    source ~/.bashrc
+    wait
+    export NVsource ~/.bashrcM_DIR="${XDG_CONFIG_HOME/:-$HOME/.}nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  
     nvm install --lts && nvm use --lts
-    
   fi
+  # if not find nrm
   which nrm > /dev/null
-  if [ $? -eq 1 ]; then
+  if [ $? -ge 1 ]; then
+    echo 'install nrm'
     npm i -g nrm
-    nrm use taobao
+  fi
+  # set registry
+  if [ $# -eq 1 ];then
+      nrm use taobao
   fi
   local registry=$(nrm ls |grep '*' |awk '{print $4}')
+  # if not find yarn
   which yarn > /dev/null
   if [ $? -eq 1 ]; then
+    echo 'install yarn'
     npm i -g yarn
   fi
   yarn config set registry $registry
+  echo 'install dependencies'
   yarn install
 }
 

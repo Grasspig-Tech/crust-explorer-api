@@ -19,30 +19,8 @@ async function main() {
   const ooo = filterRepeatData(allAccount);
   console.log(ooo);
   console.log(blocks);
-  // console.log(blocks[0].extrinsics[12].params)
   debugger;
-  // console.log("转账费==========================")
-  // for (let b of blocks) {
-  //     // console.log(`区块：${b.blockNum}`)
-  //     if (b.transfers.length > 0) {
-  //         for (const transfer of b.transfers) {
-  //             console.log(`event_index：${transfer.eventIndex}`)
-  //             console.log(`amount：${transfer.amount}`)
-  //         }
-  //     }
-  //     console.log("-----------------")
-  // };
-  // console.log("slash==========================")
-  // for (let b of blocks) {
-  //     if (b.rewardSlashes.length > 0) {
-  //         console.log(`区块：${b.blockNum}`)
-  //         for (const rewardSlash of b.rewardSlashes) {
-  //             console.log(`event_index：${rewardSlash.eventIndex}`)
-  //             console.log('rewardSlash.amount:', rewardSlash.amount)
-  //         }
-  //         console.log("-----------------")
-  //     }
-  // };
+  
   console.log(blocks);
   debugger;
 }

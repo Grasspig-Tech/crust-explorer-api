@@ -1,10 +1,10 @@
 import express, {Response, Request, NextFunction} from 'express';
 import {getBlockByBlockNum, getLastBlock} from '../../service/block';
+import CrustWsPool from '../../api/crust-network';
 import {getResult} from '../../util/get-result';
-// import logger from "../../util/logger"
-import GrantWs from '../../api/grant-ws';
 import {ApiPromise} from '@polkadot/api';
 import {CeBlock} from '../../model';
+import Conn from '../../api/crust-network/conn';
 const Router = express.Router();
 /*
     获取单个区块
@@ -12,7 +12,9 @@ const Router = express.Router();
 Router.get(
   '/block_num/:blockNum?',
   async (req: Request, res: Response, next: NextFunction) => {
-    const api: ApiPromise = await GrantWs.connect('/block_num');
+    const conn: Conn = await CrustWsPool.Conn();
+    const api: ApiPromise = await conn.Api();
+    conn.Lock(); // conn Lock
     const blockNum = req.params.blockNum ? req.params.blockNum : 2301731;
     const NumberBlockNum = Number(blockNum);
     try {
@@ -24,8 +26,7 @@ Router.get(
     } catch (error) {
       next(error);
     }
-    /* 查询成功 */
-    // res.send(response);
+    conn.UnLock(); // conn unlock
   }
 );
 /* 获取区块列表
@@ -40,11 +41,9 @@ Router.get(
   '/list1',
   async (req: Request, res: Response, next: NextFunction) => {
     // debugger
-    const api: ApiPromise = GrantWs.getApi(
-      req.baseUrl + req.path
-    ) as ApiPromise;
-
-    // console.log("进来一个");
+    const conn: Conn = await CrustWsPool.Conn();
+    const api: ApiPromise = await conn.Api();
+    conn.Lock(); // conn Lock
     const start = Number(req.query.start);
     const row = Number(req.query.row);
     if ([start, row].includes(NaN)) {
@@ -65,20 +64,20 @@ Router.get(
     try {
       const blocks: CeBlock[] = await getBlockByBlockNum(blockNums, api);
       // debugger;
-      // console.log(res);
       res.status(200).send(getResult({data: blocks}));
       return;
     } catch (error) {
       next(error);
     }
+    conn.UnLock(); // conn unlock
   }
 );
 Router.get(
   '/list2',
   async (req: Request, res: Response, next: NextFunction) => {
-    const api: ApiPromise = GrantWs.getApi(
-      req.baseUrl + req.path
-    ) as ApiPromise;
+    const conn: Conn = await CrustWsPool.Conn();
+    const api: ApiPromise = await conn.Api();
+    conn.Lock(); // conn Lock
     const start = Number(req.query.start);
     const row = Number(req.query.row);
     if ([start, row].includes(NaN)) {
@@ -99,20 +98,20 @@ Router.get(
     try {
       const blocks: CeBlock[] = await getBlockByBlockNum(blockNums, api);
       // debugger;
-      // console.log(res);
       res.status(200).send(getResult({data: blocks}));
       return;
     } catch (error) {
       next(error);
     }
+    conn.UnLock(); // conn unlock
   }
 );
 Router.get(
   '/list3',
   async (req: Request, res: Response, next: NextFunction) => {
-    const api: ApiPromise = GrantWs.getApi(
-      req.baseUrl + req.path
-    ) as ApiPromise;
+    const conn: Conn = await CrustWsPool.Conn();
+    conn.Lock(); // conn Lock
+    const api: ApiPromise = await conn.Api();
     const start = Number(req.query.start);
     const row = Number(req.query.row);
     if ([start, row].includes(NaN)) {
@@ -133,12 +132,12 @@ Router.get(
     try {
       const blocks: CeBlock[] = await getBlockByBlockNum(blockNums, api);
       // debugger;
-      // console.log(res);
       res.status(200).send(getResult({data: blocks}));
       return;
     } catch (error) {
       next(error);
     }
+    conn.UnLock(); // conn unlock
   }
 );
 /* 获取最新区块列表
@@ -147,19 +146,18 @@ Router.get(
 Router.get(
   '/last_block',
   async (req: Request, res: Response, next: NextFunction) => {
-    // debugger;
-    const api: ApiPromise = GrantWs.getApi(
-      req.baseUrl + req.path
-    ) as ApiPromise;
+    const conn: Conn = await CrustWsPool.Conn();
+    const api: ApiPromise = await conn.Api();
+    conn.Lock(); // conn Lock
     let row = Number(req.query.row);
     row = row > 0 ? row : 1;
-
     try {
       const blocks: CeBlock[] = await getLastBlock({row, api});
       res.send(getResult({data: blocks}));
     } catch (error) {
       next(error);
     }
+    conn.UnLock(); // conn unlock
   }
 );
 

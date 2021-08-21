@@ -38,12 +38,28 @@ class Log {
       new Date(new Date().setDate(new Date().getDate() - LOG_SAVA_DAY)),
       'yyyy-MM-dd'
     );
+    const line = `${time} ${type} ${str.trim()}`;
     fs.appendFileSync(
       path.resolve(this.dir, `./${dateFormat(new Date(), 'yyyy-MM-dd')}.log`),
-      `${time} ${type} ${str.trim()}\n`,
+      `${line}\n`,
       'utf8'
     );
-    // 删除老的文件
+    // 类型
+    switch (type) {
+      case 'ERROR':
+        console.error(line);
+        break;
+      case 'DEBUG':
+        console.debug(line);
+        break;
+      case 'WARN':
+        console.warn(line);
+        break;
+      case 'INFO':
+        console.info(line);
+        break;
+    }
+    // delete old log file
     this.delete(oldTime);
   }
 
@@ -72,19 +88,19 @@ class Log {
   }
 
   /**
-   * @description 警告
+   * @description warn log
    * @author huazhuangnan
    * @date 2021/09/04
    * @param {string} str
    * @memberof Log
    */
   public warn(str: string): Log {
-    this.write('WARING', str);
+    this.write('WARN', str);
     return this;
   }
 
   /**
-   * @description 错误日子
+   * @description error log
    * @author huazhuangnan
    * @date 2021/09/04
    * @param {string} str
@@ -103,19 +119,20 @@ class Log {
    * @param {string} date
    * @memberof Log
    */
-  public read(type: LogType, date: string): void {
+  public read(date: string): string {
     const filename = path.resolve(this.dir, `./${date}.log`);
+    let rsp = '';
+    // have file
     if (fs.existsSync(filename) && fs.statSync(filename).isFile()) {
-      // 存在并且是文件
       fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
-          this.error(`读取${date}日志文件出错！`);
-          return '';
+          this.error(`read ${date} log file error`);
         } else {
-          return data;
+          rsp = data;
         }
       });
     }
+    return rsp;
   }
   public delete(date: string): void {
     const filename = path.resolve(this.dir, `./${date}.log`);

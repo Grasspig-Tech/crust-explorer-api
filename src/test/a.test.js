@@ -16,10 +16,6 @@
 
     total += Number(num);
     console.log(num);
-    // console.log("==========")
-    // console.log(num)
-    // console.log(total)
-    // console.log("==========")
   });
   console.log('总数：', total);
   console.log('总人数：', all.length);
@@ -40,10 +36,6 @@
     num = num.replace(/,/g, '');
 
     total += Number(num);
-    // console.log("==========")
-    // console.log(num)
-    // console.log(total)
-    // console.log("==========")
   });
   console.log('总数：', total);
   console.log('总人数：', all.length);
@@ -65,10 +57,6 @@
 
     total += Number(num);
     console.log(num);
-    // console.log("==========")
-    // console.log(num)
-    // console.log(total)
-    // console.log("==========")
   });
   console.log('总数：', total);
   console.log('总人数：', all.length);
@@ -94,10 +82,6 @@ function getget() {
 
       total += Number(num);
       console.log(num);
-      // console.log("==========")
-      // console.log(num)
-      // console.log(total)
-      // console.log("==========")
     });
     console.log('目标  总有效质押量：', total);
     console.log('总人数：', all.length);
@@ -120,10 +104,6 @@ function getget() {
 
       total += Number(num);
       console.log(num);
-      // console.log("==========")
-      // console.log(num)
-      // console.log(total)
-      // console.log("==========")
     });
     console.log('');
     console.log('目标  自身有效质押量：', total);
@@ -147,10 +127,6 @@ function getget() {
 
       total += Number(num);
       console.log(num);
-      // console.log("==========")
-      // console.log(num)
-      // console.log(total)
-      // console.log("==========")
     });
     console.log('目标  质押总量：', total);
     console.log('总人数：', all.length);
@@ -173,10 +149,6 @@ function getget() {
 
       total += Number(num);
       console.log(num);
-      // console.log("==========")
-      // console.log(num)
-      // console.log(total)
-      // console.log("==========")
     });
     console.log('目标  质押总量：', total);
     console.log('总人数：', all.length);

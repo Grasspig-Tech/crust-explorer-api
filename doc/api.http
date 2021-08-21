@@ -1,0 +1,11 @@
+@hostname = 127.0.0.1
+@port = 9527
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@createdAt = {{$datetime iso8601}}
+
+### last block lists
+@url = "/block/last_block"
+
+GET http://{{host}}{{url}} HTTP/1.1
+Pragma: row=1

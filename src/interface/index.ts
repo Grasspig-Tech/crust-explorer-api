@@ -13,7 +13,7 @@ import {
 /* async函数或普通函数 */
 export type PromiseFuncOrPlainFunc = (...args: any[]) => Promise<any> | any;
 // 日志类型
-export type LogType = 'ERROR' | 'INFO' | 'WARING' | 'DEBUG';
+export type LogType = 'ERROR' | 'INFO' | 'WARN' | 'DEBUG';
 // 飞书机器人支持的请求方法
 export type FsRobotSupportMethod = 'post' | 'POST';
 // server酱支持类型
@@ -44,19 +44,6 @@ export type ErrorConfig = {
    */
   task: number | ((payload: any) => any | Promise<any>);
 };
-
-//
-/**
- * 定时器任务里的配置
- * timeConfig：时间配置，如'0 30 5,11,17,23 * * *'
- * task：定时任务函数（支持async函数）
- * nodeCronConfig：nodeCron的第三个参数，默认是{scheduled:true}
- */
-export interface NodecronTaskConfig {
-  timeConfig: string;
-  task: PromiseFuncOrPlainFunc;
-  nodeCronConfig?: object; //node-cron的
-}
 
 /**
  * 请求数据类型

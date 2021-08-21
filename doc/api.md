@@ -1,6 +1,7 @@
 # doc
 
-baseUrl: <http://localhost:9527/api>
+apitet
+baseUrl: <http://[LISTEN_ADDR]:[LISTEN_PORT]/api>
 
 ## 1. last block lists
 

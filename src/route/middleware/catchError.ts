@@ -1,6 +1,6 @@
 import {getErr} from '../../util/get-result';
+import Log from '../../util/log';
 import {Response, Request, NextFunction} from 'express';
-import logger from '../../util/logger';
 export default (
   error: Error | string,
   req: Request,
@@ -8,8 +8,7 @@ export default (
   next: NextFunction
 ) => {
   const err = error instanceof Error ? error.message : error;
-  // logger.error(err);
-  console.log(err);
+  Log.error(`req error ${err}`);
   res.status(500).send(getErr({msg: err}));
   next();
 };

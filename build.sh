@@ -68,11 +68,8 @@ build(){
   local tarName="${BUILD_DIR}/${CLIENT_NAEM}@${version}.tar.gz" # 包名
   # 处理目录文件
   \cp -f ./package.json $EXPORT_DIR   # 依赖
-  \cp -f ./process.json $EXPORT_DIR       # pm2 配置
+  \cp -f ./process.json $EXPORT_DIR   # pm2 配置
   sed -i 's#./src/main.ts#./main.js#g' "${EXPORT_DIR}/package.json"
-  if [ ! -d $EXPORT_DIR/logs ];then
-    mkdir -p $EXPORT_DIR/logs
-  fi
   # 输出信息
   \mv -f $EXPORT_DIR $BUILD_DIR/$CLIENT_NAEM
   echo "${CLIENT_NAEM} start build ..."

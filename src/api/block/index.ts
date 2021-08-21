@@ -1,3 +1,4 @@
+import Log from '../../util/log';
 import {ApiPromise} from '@polkadot/api';
 import {
   CeBlock,
@@ -16,7 +17,6 @@ import {
   getSortIndex,
   getBlockTimestamp,
 } from '../../util';
-import logger from '../../util/logger';
 // eslint-disable-next-line node/no-unpublished-import
 import {Extrinsic} from '@polkadot/types/interfaces';
 
@@ -31,7 +31,7 @@ export async function queryOneBlockByBlockNum(
   blockNum: number,
   api: ApiPromise
 ): Promise<Block> {
-  // const api = grantWs.api;
+  // const api = CrustWsPool.api;
   try {
     // debugger;
     // debugger;
@@ -39,7 +39,6 @@ export async function queryOneBlockByBlockNum(
       ((await api.rpc.chain.getBlockHash(blockNum)) as any).toHuman()
     );
     if (!blockHash) {
-      logger.error(`不存在区块高度为${blockNum}的区块`);
       console.error(`不存在区块高度为${blockNum}的区块`);
       throw new Error(`不存在区块高度为${blockNum}的区块`);
     }
@@ -60,11 +59,6 @@ export async function queryOneBlockByBlockNum(
         api?.rpc.chain.getBlock(blockHash),
         api?.derive.chain.getBlock(blockHash),
       ]);
-      // let { events, block: { block } }: any = await api?.derive.tx.events(blockHash as any);
-      // debugger;
-      // let blockInfo: any = await api?.derive.chain.getBlock;
-      // let blockInfo: any = await api?.derive.chain.getBlock(blockHash).catch(err => { throw err });
-      // // console.log("?????????????")
       // debugger;
       block = blockInfo.block;
       events = blockInfo.events;
@@ -72,17 +66,11 @@ export async function queryOneBlockByBlockNum(
       // debugger;
       author = blockInfo.author?.toHuman();
     } catch (error) {
-      logger.error(error);
       console.error(error);
     }
     // debugger;
-    // let { extrinsics } = block;
     let blockHeader = block?.header?.toHuman(); //区块头信息
     blockHeader = blockHeader ? blockHeader : {};
-    // author =  author.toHuman();//验证人地址
-    // author = (author as any)?.toHuman();//验证人地址
-    // let specVersion = Number((await api.rpc.state.getRuntimeVersion(blockHash)).toJSON().specVersion)//运行时版本
-    // let specVersion = Number(api?.consts.system.version.toHuman().specVersion);
     const {
       parentHash,
       stateRoot,
@@ -323,15 +311,13 @@ export async function queryOneBlockByBlockNum(
         const {meta, data} = it.event;
         it = it.toHuman();
         const {event, phase, topics} = it;
-        // console.log('-------------')
         const {method, section} = event;
         const {ApplyExtrinsic, asApplyExtrinsic} = phase;
         const allpyExtrinsicIndex =
           asApplyExtrinsic !== undefined ? asApplyExtrinsic : ApplyExtrinsic;
-        // console.log(allpyExtrinsicIndex)
         // debugger;
-        const args = meta.args.toHuman(); //['AccountId', 'SworkerPubKey']
-        const argsValue = data.toHuman(); //['5EWKQc9fNccv4WrLrNXS6DHqNQHG4F6b1MhnGsvU5VhqbMmz', '0xf580f355209251658531afec798a93985906e8c8eceb36b…e947a5f7679b3ae0d8555060d3fdb6595e13391478cfda01']
+        const args = meta.args.toHuman();
+        const argsValue = data.toHuman();
         const params = JSON.stringify(
           args.map((it: any, curIndex: number) => ({
             type: it,
@@ -340,9 +326,6 @@ export async function queryOneBlockByBlockNum(
         );
         let extrinsicHash =
           extrinsics[allpyExtrinsicIndex]?.extrinsic.hash.toHuman();
-        // console.log(`对应${allpyExtrinsicIndex}交易，交易哈希为：${extrinsicHash}`)
-        // console.log(`对应${allpyExtrinsicIndex}交易，交易哈希为：${ceExtrinsicLists[allpyExtrinsicIndex].extrinsicHash}`)
-        // console.log('-------------')
         extrinsicHash = extrinsicHash ? extrinsicHash : '';
         let extrinsicIndex =
           ceExtrinsicLists[allpyExtrinsicIndex]?.extrinsicIndex;
@@ -377,10 +360,6 @@ export async function queryOneBlockByBlockNum(
         return eventItem;
       }
     );
-    // ceExtrinsicLists.forEach(it => {
-    //     console.log(it.extrinsicHash)
-    // })
-
     /* ce_transfer列表 */
     // debugger;
     const ceTransferLists: CeTransfer[] = events
@@ -394,7 +373,6 @@ export async function queryOneBlockByBlockNum(
         // const transferToJson = JSON.parse(it.toString());
         // debugger;
         const {event, hash, phase, topics} = it;
-        // console.log(hash.toHuman());
         const {method, section} = event;
         const data = it.event.toJSON().data;
         const [from, to, amount] = data;
@@ -439,7 +417,6 @@ export async function queryOneBlockByBlockNum(
         const dataData = it.event.toJSON().data;
         const [accountId, amount]: any = dataData;
         const asApplyExtrinsic = phase.asApplyExtrinsic.toHuman();
-        // console.log(asApplyExtrinsic);
         // debugger;
         const args: string[] = meta.args.toHuman() as string[]; //['AccountId', 'SworkerPubKey']
         const argsValue: string[] = data.toHuman() as string[]; //['5EWKQc9fNccv4WrLrNXS6DHqNQHG4F6b1MhnGsvU5VhqbMmz', '0xf580f355209251658531afec798a93985906e8c8eceb36b…e947a5f7679b3ae0d8555060d3fdb6595e13391478cfda01']
@@ -481,9 +458,8 @@ export async function queryOneBlockByBlockNum(
     };
     return resBlock;
   } catch (error) {
-    console.log(`${blockNum}区块报错`);
-    console.log(error);
-    throw new Error(`${blockNum}区块报错`);
+    Log.error(`${blockNum} 区块报错 `);
+    throw new Error(`${blockNum} 区块报错`);
   }
 }
 export async function queryBlockByBlockNums(

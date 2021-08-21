@@ -48,12 +48,6 @@ export async function getLastBlock({
       blockNums.push(i);
     }
     // debugger;
-    // console.log(blockNums.toString())
-    // let blockPromise = blockNums.map(it => {
-    //     // console.log(it)
-    //     return queryOneBlockByBlockNum(it, api)
-    // });
-    // let blocks: Block[] = await Promise.all(blockPromise);
     const blocks = await queryBlockByBlockNums(blockNums, api);
     return blocks;
   } catch (error) {

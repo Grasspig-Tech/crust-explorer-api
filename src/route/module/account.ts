@@ -1,9 +1,10 @@
 import express, {Response, Request, NextFunction} from 'express';
 // import { getValidators } from "../../service/validator"
 import {getResult} from '../../util/get-result';
-import GrantWs from '../../api/grant-ws';
+import CrustWsPool from '../../api/crust-network';
 import {ApiPromise} from '@polkadot/api';
 import {getAccounts} from '../../service/account';
+import Conn from '../../api/crust-network/conn';
 const Router = express.Router();
 
 /* 获取账户信息
@@ -15,7 +16,9 @@ const Router = express.Router();
 */
 Router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   // debugger;
-  const api: ApiPromise = GrantWs.getApi(req.baseUrl + req.path) as ApiPromise;
+  const conn: Conn = await CrustWsPool.Conn();
+  const api: ApiPromise = await conn.Api();
+  conn.Lock(); // conn Lock
   const {accounts} = req.body;
   // debugger;
   try {
@@ -26,6 +29,7 @@ Router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     next(error);
   }
+  conn.UnLock(); // conn unlink
 });
 
 export default Router;

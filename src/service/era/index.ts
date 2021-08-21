@@ -37,9 +37,7 @@ export async function getLastBlock({
       blockNums.push(i);
     }
     // debugger;
-    // console.log(blockNums.toString())
     const blockPromise = blockNums.map(it => {
-      console.log(it);
       return queryOneBlockByBlockNum(it, api);
     });
     const blocks: Block[] = await Promise.all(blockPromise);
