@@ -17,8 +17,7 @@ Router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   // debugger;
   const api: ApiPromise = GrantWs.getApi(req.baseUrl + req.path) as ApiPromise;
   const {accounts} = req.body;
-  // eslint-disable-next-line no-debugger
-  debugger;
+  // debugger;
   try {
     console.time('时间');
     const result = await getAccounts(accounts, api);

@@ -12,6 +12,7 @@ const Router = express.Router();
 Router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   // debugger
   try {
+    // debugger;
     const api: ApiPromise = GrantWs.getApi(req.originalUrl) as ApiPromise;
     const result = await getNetworkOverviewInfo(api);
     res.send(getResult({data: result}));

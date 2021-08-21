@@ -13,7 +13,6 @@ export default class SClient {
   private token: string = SERVER_TOKEN; // server token
   public readonly client: Got; // 后面不可以修改
   constructor(options: object = {}) {
-    // console.log("-----------")
     this.client = got.extend({
       prefixUrl: this.api,
       dnsLookupIpVersion: 'ipv4',

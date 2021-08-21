@@ -4,12 +4,6 @@ import {CeNetworkOverview} from '../../model/ce_network_overview';
 import {trillionCruFormat} from '../../util';
 import CSClient from '../cs-client';
 
-// export interface AccountArg {
-//     address: string,
-//     role?: Role,//1为验证人，2为候选验证人,3为提名人
-//     accountType: number,//1为存储账户，2为控制账户
-//     // api: ApiPromise
-// }
 /**
  * @param accounts
  * @param api
@@ -32,6 +26,7 @@ export async function queryNetworkOverview(
         totalCirculation: 总发行量
         概览
     */
+  //   debugger;
   const [totalCirculation, merchants, activeEra]: any = await Promise.all([
     api.query.balances.totalIssuance().then(res => res.toString()),
     csclient.queryMerchants(),

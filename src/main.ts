@@ -15,10 +15,10 @@ const app = express();
       grantWs.connect('/api/block/last_block'),
       grantWs.connect('/api/era'),
       grantWs.connect('/api/network_overview'),
-      // grantWs.connect('/api/account/'),
+      grantWs.connect('/api/account/'), // 最后的斜杆不能去掉
     ]);
     route(app);
-    app.listen(LISTEN_PORT, LISTEN_ADDR, () => {
+    app.listen(LISTEN_PORT, () => {
       console.log(`conn crust server ${WS_NETWORK_URL}`);
       console.log(`listen api server ${LISTEN_ADDR}:${LISTEN_PORT}`);
     });

@@ -11,7 +11,6 @@ import {
   Role,
   Status,
 } from '../../interface';
-import {queryAccount} from '../account';
 import {
   trillionCruFormat,
   getControllerAddressByStashAddress,
@@ -36,31 +35,14 @@ import {CeNominator} from '../../model';
 export async function queryEras({api}: {api: ApiPromise}) {
   // debugger;
   /* 获取所有账户 */
-  // let : any[] = await ;
-  // chainAllAccount = ;
-
-  // let tmpFilter = filterRepeatData;
-  // let tmpCompare = compare;
-  //   console.time('ddddddd');
-  //   let [overview, waitingValidatorAddress, chainAllAccount]: any =
-  //     await Promise.all([
-  //       api.derive.staking.overview(),
-  //       api.derive.staking.waitingInfo(),
-  //       api.query.system.account.entries(),
-  //     ]);
-  //   console.timeEnd('ddddddd');
-  //   chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
-  const chainAllAccount: any = [];
   // eslint-disable-next-line prefer-const
-  let [overview, waitingValidatorAddress]: any = await Promise.all([
-    api.derive.staking.overview(),
-    api.derive.staking.waitingInfo(),
-  ]);
-  //   debugger;
-
-  // const overview = await ;
-  // let waitingValidatorAddress: any = await ;
-  // debugger;
+  let [overview, waitingValidatorAddress, chainAllAccount]: any =
+    await Promise.all([
+      api.derive.staking.overview(),
+      api.derive.staking.waitingInfo(),
+      api.query.system.account.entries(),
+    ]);
+  chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
   waitingValidatorAddress = waitingValidatorAddress.info.map((it: any) => {
     return {
       stashAddress: it.accountId.toJSON(),
@@ -193,6 +175,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
       // address: string,//存储账户，不能是控制账户
       //     role: number,//1为验证人，2为候选验证人
       //     rank: number
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       return it.map((item: any, curIndex: number) => {
         const role: Role =
           tmpIndex === 0 ? Role.Validator : Role.WaitingValidator;
@@ -412,7 +395,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
   // debugger
   //   debugger;
   const members = await queryMember(validatorMapToMember, api, eraInfo);
-  const accounts = await queryAccount(totalAccount, api);
+  // const accounts = await queryAccount(totalAccount, api);
   //   debugger;
   const res: EraResult = {
     eraStat: {
@@ -423,7 +406,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
     members,
     // validatorPledges: resValidators,
     nominators: totalNominators,
-    accounts,
+    accounts: totalAccount,
   };
   // debugger;
   return {
