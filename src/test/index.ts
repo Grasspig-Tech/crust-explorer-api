@@ -1,2 +1,1 @@
-import "./sdk/block"
-
+import './sdk/block';

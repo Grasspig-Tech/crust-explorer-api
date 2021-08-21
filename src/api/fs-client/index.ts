@@ -1,7 +1,7 @@
 // server 酱
-import got, { Got } from 'got';
-import { FS_ROBOT_KEY, FS_ROBOT_REQUEST_URL } from '../../config';
-import { CommitErrorMessage } from '../../interface';
+import got, {Got} from 'got';
+import {FS_ROBOT_KEY, FS_ROBOT_REQUEST_URL} from '../../config';
+import {CommitErrorMessage} from '../../interface';
 import crypto from 'crypto';
 /* example
 const ss = new SSClient()
@@ -55,7 +55,7 @@ export default class FSClient {
       payload: context,
     };
     const jsonData = targetDataPackage(context, this.token);
-    let res = await this.client.post(this.api, { json: jsonData }).catch(() => {
+    let res = await this.client.post(this.api, {json: jsonData}).catch(() => {
       whenErrorTarget.code = 2;
       throw whenErrorTarget;
     });

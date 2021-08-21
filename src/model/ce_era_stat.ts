@@ -1,8 +1,6 @@
-
 export interface CeEraStat {
-    id?: number,
-    era: number,
-    startBlockTimestamp: number,
-    endBlockTimestamp?: number,
+  id?: number;
+  era: number;
+  startBlockTimestamp: number;
+  endBlockTimestamp?: number;
 }
-

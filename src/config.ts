@@ -58,6 +58,7 @@ export const MAX_FS_ERROR_SEND_NUM = 6;
 
 // express监听端口
 export const LISTEN_PORT = 9527;
+export const LISTEN_ADDR = '127.0.0.1';
 // 主网路径
 export const WS_NETWORK_URL = 'wss://api.decloudf.com/';
 // export const WS_NETWORK_URL = "wss://api.crust.network/";

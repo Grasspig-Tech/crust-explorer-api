@@ -1,5 +1,5 @@
-import { ErrorConfig } from '../../interface';
-import { delay } from '../../util';
+import {ErrorConfig} from '../../interface';
+import {delay} from '../../util';
 import SSClient from './index';
 
 const whenErrorConfig: ErrorConfig[] = [
@@ -12,9 +12,9 @@ const whenErrorConfig: ErrorConfig[] = [
   {
     /* 网络不报错，但是发送失败 */
     code: 1,
-    task: async ({ title, context }) => {
+    task: async ({title, context}) => {
       await delay(5000);
-      await SSClient.getInstance().send({ title, context });
+      await SSClient.getInstance().send({title, context});
     },
   },
   {

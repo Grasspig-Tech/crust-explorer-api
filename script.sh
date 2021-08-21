@@ -4,7 +4,7 @@
 # 时 间：2021年4月9日
 set -u
 CRTDIR=$(pwd) # 当前目录
-NAME='app-crust-api' # 进程
+NAME='crust-explorer-api' # 进程
 # 初始化
 init(){
   # 目录
@@ -33,7 +33,7 @@ install(){
   # 更新
   apt-get update -y && apt-get upgrade -y && apt-get autoclean -y
   # 安装依赖
-  which node >> /dev/null
+  which node > /dev/null
   if [ $? -eq 1 ]; then
     echo 'install nvm'
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
@@ -41,13 +41,13 @@ install(){
     nvm install --lts && nvm use --lts
     
   fi
-  which nrm >> /dev/null
+  which nrm > /dev/null
   if [ $? -eq 1 ]; then
     npm i -g nrm
     nrm use taobao
   fi
   local registry=$(nrm ls |grep '*' |awk '{print $4}')
-  which yarn >> /dev/null
+  which yarn > /dev/null
   if [ $? -eq 1 ]; then
     npm i -g yarn
   fi

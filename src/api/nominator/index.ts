@@ -10,9 +10,9 @@
 // import { getAccountDisplay } from "../../util"
 
 // /**
-//  * 
-//  * @param param0 
-//  * @returns 
+//  *
+//  * @param param0
+//  * @returns
 //  */
 // export async function queryMember(
 //     accounts
@@ -50,6 +50,4 @@
 
 //     return ceMember;
 
-
 // }
-

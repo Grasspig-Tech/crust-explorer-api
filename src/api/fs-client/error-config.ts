@@ -1,9 +1,9 @@
-import { ErrorConfig } from '../../interface';
-import { delay } from '../../util';
+import {ErrorConfig} from '../../interface';
+import {delay} from '../../util';
 import FSClient from './index';
-import { ERROR_SS_SEND, MAX_FS_ERROR_SEND_NUM } from '../../config';
+import {ERROR_SS_SEND, MAX_FS_ERROR_SEND_NUM} from '../../config';
 import SSClient from '../ss-client';
-import { fsSendErrorCount } from '../../util/err-count';
+import {fsSendErrorCount} from '../../util/err-count';
 
 const whenErrorConfig: ErrorConfig[] = [
   {

@@ -1,7 +1,7 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "target": "ES2021",
+    "target": "ES6",
     "module": "commonjs",
     "rootDir": "./src",
     "outDir": "./compile",
@@ -13,7 +13,7 @@
       "node",
     ],
     "lib": [
-      "ES2021"
+      "ES6"
     ],
     "moduleResolution": "node",
     "experimentalDecorators": true,

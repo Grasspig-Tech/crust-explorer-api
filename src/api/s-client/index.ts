@@ -1,6 +1,6 @@
-import got, { Got } from 'got';
+import got, {Got} from 'got';
 import * as cryptoJS from 'crypto-js';
-import { SERVER_API, SERVER_TOKEN } from '../../config';
+import {SERVER_API, SERVER_TOKEN} from '../../config';
 
 /**
  * @description server 端
@@ -49,7 +49,7 @@ export default class SClient {
    */
   public async pullData(data: Record<string, any>): Promise<any> {
     // console.log("pullData")
-    return "测试"
+    return '测试';
     // return await this.client.post('./pool/detail', {
     //   form: {
     //     sign: cryptoJS.SHA256(this.token).toString(),

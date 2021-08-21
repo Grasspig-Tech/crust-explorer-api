@@ -51,6 +51,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
   //   console.timeEnd('ddddddd');
   //   chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
   const chainAllAccount: any = [];
+  // eslint-disable-next-line prefer-const
   let [overview, waitingValidatorAddress]: any = await Promise.all([
     api.derive.staking.overview(),
     api.derive.staking.waitingInfo(),

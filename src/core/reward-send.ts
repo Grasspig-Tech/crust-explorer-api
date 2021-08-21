@@ -1,9 +1,9 @@
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import { typesBundleForPolkadot } from '@crustio/type-definitions';
-import { CHAIN_WS_URL } from '../config';
-import { PromiseFuncOrPlainFunc } from '../interface';
-import { Keyring } from '@polkadot/keyring'; // eslint-disable-line node/no-extraneous-import
-import { ACCOUNT_PASSWD, ACCOUNT_BACKUP } from '../config';
+import {ApiPromise, WsProvider} from '@polkadot/api';
+import {typesBundleForPolkadot} from '@crustio/type-definitions';
+import {CHAIN_WS_URL} from '../config';
+import {PromiseFuncOrPlainFunc} from '../interface';
+import {Keyring} from '@polkadot/keyring'; // eslint-disable-line node/no-extraneous-import
+import {ACCOUNT_PASSWD, ACCOUNT_BACKUP} from '../config';
 import Log from '../util/log';
 
 /**
@@ -14,7 +14,7 @@ import Log from '../util/log';
  */
 async function real_sendReward(api: ApiPromise) {
   // 交易提交签名
-  const keyring = new Keyring({ type: 'sr25519' });
+  const keyring = new Keyring({type: 'sr25519'});
   // const pair = await keyring.addFromJson(JSON.parse(ACCOUNT_BACKUP));
 
   const [activeEra, address, pair] = await Promise.all([

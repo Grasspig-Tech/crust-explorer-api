@@ -25,9 +25,10 @@
     "pm2": "^4.5.6"
   },
   "devDependencies": {
+    "@polkadot/types": "^5.5.2",
     "@types/crypto-js": "^4.0.1",
     "@types/express": "^4.17.13",
-    "@types/node": "^16.3.0",
+    "@types/node": "^16.7.1",
     "@types/node-cron": "^2.0.3",
     "gts": "^3.1.0",
     "log4js": "^6.3.0",

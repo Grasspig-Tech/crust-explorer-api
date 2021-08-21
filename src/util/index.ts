@@ -1,18 +1,23 @@
 // 工具类
-import { TEMP_DIR } from '../config';
+import {TEMP_DIR} from '../config';
 import fs from 'fs';
 import path from 'path';
-import Decimal from "decimal.js"
-import { ApiPromise } from "@polkadot/api"
+import Decimal from 'decimal.js';
+import {ApiPromise} from '@polkadot/api';
 // import { RegistrationJudgement } from "@polkadot/types/interfaces/identity/types"
 // import { DeriveAccountRegistration } from "@polkadot/api-derive/types"
-import { ClassifyArg, ClassifyResult, AccountDisplay, Status } from "../interface"
+import {
+  ClassifyArg,
+  ClassifyResult,
+  AccountDisplay,
+  Status,
+} from '../interface';
 
 /**
  * isExtrinsicSuccess((await api?.derive.chain.getBlock(blockHash)).extrinsics[0]  , api)
- * @param extrinsic 
- * @param api 
- * @returns 
+ * @param extrinsic
+ * @param api
+ * @returns
  */
 export function isExtrinsicSuccess(extrinsic: any, api: ApiPromise): Status {
   if (!extrinsic || !extrinsic.events) {
@@ -25,31 +30,32 @@ export function isExtrinsicSuccess(extrinsic: any, api: ApiPromise): Status {
       /* 走进这里，说明交易失败 */
       return Status.No;
     }
-
   }
   return Status.Yes;
 }
 
-/* 
+/*
    一定要确保arr1和arr2各自中没有重复的数据
 */
 
 export function compare(arr1: any[], arr2: any[], key?: string | string[]) {
-  let arr1Only: any = [];
-  let arr2Only: any = [];
-  let common: any = [];
-  let keys: string[] = (typeof key === "string" ? [key] : key) as string[];
+  const arr1Only: any = [];
+  const arr2Only: any = [];
+  const common: any = [];
+  const keys: string[] = (typeof key === 'string' ? [key] : key) as string[];
   arr1.forEach(it => {
     if (key) {
       // if (!arr2.find(item => item[key] === it[key])) {
-      if (!arr2.find(item => {
-        for (let i = 0; i < keys.length; i++) {
-          if (it[keys[i]] !== item[keys[i]]) {
-            return false;
+      if (
+        !arr2.find(item => {
+          for (let i = 0; i < keys.length; i++) {
+            if (it[keys[i]] !== item[keys[i]]) {
+              return false;
+            }
           }
-        }
-        return true;
-      })) {
+          return true;
+        })
+      ) {
         arr1Only.push(it);
       } else {
         common.push(it);
@@ -57,22 +63,23 @@ export function compare(arr1: any[], arr2: any[], key?: string | string[]) {
     } else {
       if (!arr2.includes(it)) {
         arr1Only.push(it);
-      }
-      else {
+      } else {
         common.push(it);
       }
     }
   });
   arr2.forEach(it => {
     if (key) {
-      if (!arr1.find(item => {
-        for (let i = 0; i < keys.length; i++) {
-          if (it[keys[i]] !== item[keys[i]]) {
-            return false;
+      if (
+        !arr1.find(item => {
+          for (let i = 0; i < keys.length; i++) {
+            if (it[keys[i]] !== item[keys[i]]) {
+              return false;
+            }
           }
-        }
-        return true;
-      })) {
+          return true;
+        })
+      ) {
         arr2Only.push(it);
       }
     } else {
@@ -84,9 +91,8 @@ export function compare(arr1: any[], arr2: any[], key?: string | string[]) {
   return {
     arr1Only,
     arr2Only,
-    common
-  }
-
+    common,
+  };
 }
 
 /**
@@ -102,33 +108,30 @@ export function compare(arr1: any[], arr2: any[], key?: string | string[]) {
  */
 export async function getLocks(stashAddress: string[], api: ApiPromise) {
   let res: any = await api.queryMulti([
-    ...(stashAddress.map(it => [api.query.balances.locks, it]) as any)
+    ...(stashAddress.map(it => [api.query.balances.locks, it]) as any),
   ]);
   res = res.map((it: any) => it.toJSON());
   /* 质押锁定 */
   const stakingLock = res.map((it: any) => {
-    let r = it.find((item: any) => item.id === '0x7374616b696e6720');
+    const r = it.find((item: any) => item.id === '0x7374616b696e6720');
     return r ? Number(r.amount) : 0;
   });
   /* 选举锁定 */
   const electionLock = res.map((it: any) => {
-    let r = it.find((item: any) => item.id === '0x706872656c656374');
+    const r = it.find((item: any) => item.id === '0x706872656c656374');
     return r ? Number(r.amount) : 0;
   });
   /* 民主锁定 */
   const democracyLock = res.map((it: any) => {
-    let r = it.find((item: any) => item.id === '0x706872656c656374');
+    const r = it.find((item: any) => item.id === '0x706872656c656374');
     return r ? Number(r.amount) : 0;
   });
   return {
     stakingLock,
     electionLock,
-    democracyLock
-  }
-
+    democracyLock,
+  };
 }
-
-
 
 /**
  *
@@ -136,32 +139,34 @@ export async function getLocks(stashAddress: string[], api: ApiPromise) {
  * @export
  * @param {any[]} repeatData
  * @param {string} [key]
- * @return {*} 
+ * @return {*}
  */
 export function filterRepeatData(repeatData: any[], key?: string | string[]) {
-  let filterData: any[] = [];
-  if (key && typeof key === "string") {
+  const filterData: any[] = [];
+  if (key && typeof key === 'string') {
     key = [key] as string[];
   }
   if (key) {
     repeatData.forEach(item => {
-      if (!filterData.find(it => {
-        for (let i = 0; i < (key as string[]).length; i++) {
-          if (it[(key as string[])[i]] !== item[(key as string[])[i]]) {
-            return false;
+      if (
+        !filterData.find(it => {
+          for (let i = 0; i < (key as string[]).length; i++) {
+            if (it[(key as string[])[i]] !== item[(key as string[])[i]]) {
+              return false;
+            }
           }
-        }
-        return true;
-      })) {
+          return true;
+        })
+      ) {
         filterData.push(item);
       }
-    })
+    });
   } else {
     repeatData.forEach(item => {
       if (!filterData.includes(item)) {
         filterData.push(item);
       }
-    })
+    });
   }
   return filterData;
 }
@@ -170,7 +175,7 @@ export function filterRepeatData(repeatData: any[], key?: string | string[]) {
  * 归类
  * 如：传入[{type: 'aa',data: ['11','22']} , {type: 'bb',data: ['11','33']} , {type: 'cc',data: ['22','44']}]
  * 返回：[{data: 11,type: ['aa','bb']} , {data: 22,type: ['aa','cc']} ,... ]
- * 
+ *
  * 现在主要是用来区分议会，技术委员会，身份注册商
  * @export
  */
@@ -179,23 +184,28 @@ export function filterRepeatData(repeatData: any[], key?: string | string[]) {
 // debugger;
 export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
   const allTypes = arg.map(it => it.type);
-  let datas = arg.map(it => it.data).reduce((prev, cur) => [...prev, ...cur], []);
-  let filterRepeatDatas: any[] = [];
+  const datas = arg
+    .map(it => it.data)
+    .reduce((prev, cur) => [...prev, ...cur], []);
+  const filterRepeatDatas: any[] = [];
   datas.forEach(item => {
     if (!filterRepeatDatas.includes(item)) {
       filterRepeatDatas.push(item);
     }
-  })
+  });
   const classifyResult: ClassifyResult[] = [];
 
   const result: ClassifyResult[] = filterRepeatDatas.map(item => {
-    let types = (arg.filter(it => it.data.includes(item)) as any).reduce((prev: string[], cur: ClassifyArg) => [...prev, cur.type], [])
-    let res: ClassifyResult = {
+    const types = (arg.filter(it => it.data.includes(item)) as any).reduce(
+      (prev: string[], cur: ClassifyArg) => [...prev, cur.type],
+      []
+    );
+    const res: ClassifyResult = {
       data: item,
-      type: types
-    }
+      type: types,
+    };
     return res;
-  })
+  });
   return result;
   // allTypes.forEach
 }
@@ -208,26 +218,31 @@ export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
  * @param {*} type 1是blockNum，2是blockHash，3是extrinsic本身，必须是通过api.derive.chain.getBlock(blockHash)返回的extrinsic列表
  * @return {*}  {number}
  */
-export async function getBlockTimestamp(info: any, type: number, api: ApiPromise): Promise<number> {
+export async function getBlockTimestamp(
+  info: any,
+  type: number,
+  api: ApiPromise
+): Promise<number> {
   let extrinsics: any;
   if (type === 1) {
     /* 通过区块高度获取 */
-    let blockHash = await api.rpc.chain.getBlockHash(info);
+    const blockHash = await api.rpc.chain.getBlockHash(info);
     extrinsics = (await api.derive.chain.getBlock(blockHash))?.extrinsics;
   } else if (type === 2) {
     extrinsics = (await api.derive.chain.getBlock(info))?.extrinsics;
-
   } else if (type === 3) {
     extrinsics = info;
   }
   let blockTimestamp = 0;
   extrinsics.find((it: any): any => {
-    const { method: { section, method, args } } = it.extrinsic.toHuman();
+    const {
+      method: {section, method, args},
+    } = it.extrinsic.toHuman();
     if (section === 'timestamp' && method === 'set') {
       blockTimestamp = ms2S(removeDot(args[0]));
       return true;
     }
-  })
+  });
   return blockTimestamp;
 }
 /**
@@ -240,50 +255,71 @@ export async function getBlockTimestamp(info: any, type: number, api: ApiPromise
  * @return {*}  {string}
  */
 export function getSortIndex(indexStr: string): string {
-  let [blockNum, theIndex] = indexStr.split("-");
-  if (theIndex == undefined) {
-    throw new Error("formatIndex传参格式不正确")
+  const [blockNum, theIndex] = indexStr.split('-');
+  if (theIndex === undefined) {
+    throw new Error('formatIndex传参格式不正确');
   }
-  let baseFixNum = 4;//至少4位数
+  const baseFixNum = 4; //至少4位数
   let sortIndex = theIndex;
   for (let i = theIndex.length; i < baseFixNum; i++) {
-    sortIndex = "0" + sortIndex;
+    sortIndex = '0' + sortIndex;
   }
-  return `${blockNum}${sortIndex}`
+  return `${blockNum}${sortIndex}`;
 }
-
 
 /**
  * 通过地址获取提名人列表
- * @param address 
- * @param curEra 
- * @param api 
- * @returns 
+ * @param address
+ * @param curEra
+ * @param api
+ * @returns
  */
-export async function getNominators(address: string[], curEra: number, api: ApiPromise): Promise<{ validatorAddress: string, nominators: any[] }[]> {
-  let queryRes = await api.queryMulti([
-    ...address.map(it => [api.query.staking.erasStakers, [curEra, it]]) as any
+export async function getNominators(
+  address: string[],
+  curEra: number,
+  api: ApiPromise
+): Promise<{validatorAddress: string; nominators: any[]}[]> {
+  const queryRes = await api.queryMulti([
+    ...(address.map(it => [
+      api.query.staking.erasStakers,
+      [curEra, it],
+    ]) as any),
   ]);
-  let nominators = queryRes.map((it: any, index) => ({ validatorAddress: address[index], nominators: it.toJSON().others }));
+  const nominators = queryRes.map((it: any, index) => ({
+    validatorAddress: address[index],
+    nominators: it.toJSON().others,
+  }));
   return nominators;
 }
 
-
-
 /* 获取account_display */
-export async function getAccountDisplay(arr: { address: string }[], api: ApiPromise): Promise<AccountDisplay[]> {
+export async function getAccountDisplay(
+  arr: {address: string}[],
+  api: ApiPromise
+): Promise<AccountDisplay[]> {
   /* api.derive.accounts.info(vs[0]) */
   /* api.query.identity.identityOf(accountid) */
-  let pAll = arr.map(it => {
-    return api.derive.accounts.info(it.address)
+  const pAll = arr.map(it => {
+    return api.derive.accounts.info(it.address);
     // return api.derive.accounts.info
-  })
-  let querRes = await Promise.all(pAll)
-  let res = querRes.map(it => {
+  });
+  const querRes = await Promise.all(pAll);
+  const res = querRes.map(it => {
     // debugger;
-    let judgementsJson = (it.identity.judgements as any).toJSON ? (it.identity.judgements as any)?.toJSON() : it.identity.judgements;
-    let { display, displayParent, email, image, legal, other, parent, pgp }: any = it.identity;
-    let accountDisplay: AccountDisplay = {
+    const judgementsJson = (it.identity.judgements as any).toJSON
+      ? (it.identity.judgements as any)?.toJSON()
+      : it.identity.judgements;
+    const {
+      display,
+      displayParent,
+      email,
+      image,
+      legal,
+      other,
+      parent,
+      pgp,
+    }: any = it.identity;
+    const accountDisplay: AccountDisplay = {
       address: it.accountId?.toJSON() as string,
       accountIndex: it.accountIndex as any,
       nickname: it.nickname,
@@ -295,25 +331,26 @@ export async function getAccountDisplay(arr: { address: string }[], api: ApiProm
       legal,
       other,
       parent,
-      pgp
-    }
+      pgp,
+    };
     return accountDisplay;
-  })
+  });
   return res;
 }
 
-export async function getControllerAddressByStashAddress(stashAddress: string[], api: ApiPromise): Promise<string[]> {
-  let multi: any = stashAddress.map(it => {
-    return [api.query.staking.bonded, it]
-  })
-  let res = await api.queryMulti([
-    ...multi
-  ]);
+export async function getControllerAddressByStashAddress(
+  stashAddress: string[],
+  api: ApiPromise
+): Promise<string[]> {
+  const multi: any = stashAddress.map(it => {
+    return [api.query.staking.bonded, it];
+  });
+  const res = await api.queryMulti([...multi]);
   // debugger;
-  let result = res.map(it => {
+  const result = res.map(it => {
     // debugger;
     return it.toJSON();
-  })
+  });
   // debugger;
   return result as string[];
 }
@@ -325,16 +362,17 @@ export async function getControllerAddressByStashAddress(stashAddress: string[],
 
 */
 
-export function trillionCruFormat(trillionCru: string | number, formatBasic: number = 12): string {
+export function trillionCruFormat(
+  trillionCru: string | number,
+  formatBasic = 12
+): string {
   if (Number.isNaN(Number(trillionCru))) {
-    throw new Error(`${trillionCru}转化失败`)
+    throw new Error(`${trillionCru}转化失败`);
   }
-  let n = new Decimal(trillionCru);
-  let res = n.div(`1e${formatBasic}`).toJSON();
+  const n = new Decimal(trillionCru);
+  const res = n.div(`1e${formatBasic}`).toJSON();
   return res;
 }
-
-
 
 /**
  * 去掉逗号，如：1,200 -> 1200
@@ -342,10 +380,10 @@ export function trillionCruFormat(trillionCru: string | number, formatBasic: num
  * @export
  */
 export function removeDot(str: string | number) {
-  if (typeof str === "number") {
+  if (typeof str === 'number') {
     return str;
   }
-  return Number(str.replace(/,/g, ""));
+  return Number(str.replace(/,/g, ''));
 }
 
 /**
@@ -368,7 +406,7 @@ export function delay(time = 1000) {
  * @export
  */
 export function ms2S(ms: number) {
-  let msStr = String(ms);
+  const msStr = String(ms);
   return Number(msStr.slice(0, msStr.length - 3));
 }
 /**
@@ -464,7 +502,7 @@ export function tempFileWrite(filename: string, context: string): void {
  * @param {type} params
  */
 export function tempFileRead(filename: string): string {
-  return fs.readFileSync(path.resolve(TEMP_DIR, filename), { encoding: 'utf-8' });
+  return fs.readFileSync(path.resolve(TEMP_DIR, filename), {encoding: 'utf-8'});
 }
 
 /**

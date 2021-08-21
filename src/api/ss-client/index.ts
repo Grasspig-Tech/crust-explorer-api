@@ -1,7 +1,7 @@
 // server 酱
-import got, { Got } from 'got';
-import { SERVER_SS_API, SERVER_SS_TOKEN } from '../../config';
-import { CommitErrorMessage, SMethod } from '../../interface';
+import got, {Got} from 'got';
+import {SERVER_SS_API, SERVER_SS_TOKEN} from '../../config';
+import {CommitErrorMessage, SMethod} from '../../interface';
 
 /* example
 const ss = new SSClient()
@@ -50,21 +50,21 @@ export default class SSClient {
       title: string;
       context: string;
       type?: SMethod;
-    } = { title: '', context: '', type: 'post' }
+    } = {title: '', context: '', type: 'post'}
   ): Promise<any> {
-    const { title, context, type = 'post' } = config;
-    const data = { title: title, desp: context };
+    const {title, context, type = 'post'} = config;
+    const data = {title: title, desp: context};
     const whenErrorTarget: CommitErrorMessage = {
       target: 'ss_client',
       code: 0,
-      payload: { title, context },
+      payload: {title, context},
     };
     let res;
     try {
       res =
         type.toLowerCase() === 'get'
-          ? await this.client.get('', { searchParams: data })
-          : await this.client.post('', { form: data });
+          ? await this.client.get('', {searchParams: data})
+          : await this.client.post('', {form: data});
     } catch (error) {
       whenErrorTarget.code = 2;
       throw whenErrorTarget;
