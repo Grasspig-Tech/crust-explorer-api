@@ -7,7 +7,7 @@ baseUrl: <http://[LISTEN_ADDR]:[LISTEN_PORT]/api>
 
 method: GET
 url: /block/last_block
-params: 
+params:
 | name | type |  require|default   |description
 | :----:| :----:   | :----:  | :----: |  :----: |
 | row | number|no |  1 | rows from last block |
@@ -16,12 +16,13 @@ params:
 
 method: GET
 url: /block/list1
-params: 
+params:
 
 | name | type |  require|default   |description
 | :----:| :----:   | :----:  | :----: |  :----: |
 | start | number|yes |  1 | block num |
 | row | number|yes |  1 | rows from target block |
+
 ## 3.era
 
 method: GET
@@ -31,6 +32,7 @@ url: /era
 
 method: GET
 url: /network_overview
+
 ## 5.account
 
 method: POST
@@ -39,13 +41,3 @@ body:
 | name | type |  require|default   |description
 | :----:| :----:   | :----:  | :----: |  :----: |
 | accounts | object[]|yes |   | 从/api/era获取到的accounts数据 [{"address": "5DvTCFuPUXb6Vzg5NB4mFu3Hz95GUqXTMLXib66e4KhF9wxW","role": 1,"accountType": 1},] |
-
-
-
-
-
-
-
-
-
-
