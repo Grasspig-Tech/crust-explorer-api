@@ -1,5 +1,5 @@
 import express, {Express} from 'express';
-import catchErrorMiddleware from './middleware/catchError';
+import catchErrorMiddleware from './middleware/err';
 import blockRoute from './module/block';
 import LogMiddle from './middleware/log';
 import networkOverviewRoute from './module/network_overview';
