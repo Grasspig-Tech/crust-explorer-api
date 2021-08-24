@@ -20,7 +20,7 @@ export async function queryAccount(
   });
   const accountDisplayArgs = accounts.map(it => ({address: it.address}));
   const queryRes = await Promise.all([
-    accountsMapToQueryMulti,
+    Promise.all(accountsMapToQueryMulti),
     getAccountDisplay(accountDisplayArgs),
     getLocks(accounts.map(it => it.address)),
   ]);
