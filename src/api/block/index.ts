@@ -1,5 +1,5 @@
-import Log from '../../util/log';
 import {ApiPromise} from '@polkadot/api';
+import CrustPool from '../../crust-pool';
 import {
   CeBlock,
   CeEvent,
@@ -27,48 +27,46 @@ import {Extrinsic} from '@polkadot/types/interfaces';
  * @return {*}
  */
 export async function queryOneBlockByBlockNum(
-  blockNum: number,
-  api: ApiPromise
+  blockNum: number
 ): Promise<Block> {
-  // const api = CrustWsPool.api;
   try {
-    // debugger;
-    // debugger;
     const blockHash = String(
-      ((await api.rpc.chain.getBlockHash(blockNum)) as any).toHuman()
+      (
+        await CrustPool.Run<any>((api: ApiPromise) => {
+          return api.rpc.chain.getBlockHash(blockNum);
+        })
+      )?.toHuman()
     );
     if (!blockHash) {
       throw `not find ${blockNum} block`;
     }
-    // let { block } = (await api?.rpc.chain.getBlock(blockHash) as any)?.block
-    // let {
-    //     block,
-    //     author,
-    //     extrinsics//交易列表
-
-    // }: any = await api?.rpc.chain.getBlock(blockHash);
     let block: any;
     let extrinsics: any = [];
     let events = [];
     let author = '';
     try {
       /* placeholder是占位的，因为api?.derive.chain.getBlock(blockHash)报错会导致死循环 */
-      const [blockInfo]: any = await Promise.all([
-        api?.rpc.chain.getBlock(blockHash),
-        api?.derive.chain.getBlock(blockHash),
+      const [blockInfo]: any[] = await Promise.all([
+        CrustPool.Run<any>((api: ApiPromise) => {
+          return api.derive.chain.getBlock(blockHash);
+        }),
+        CrustPool.Run<any>((api: ApiPromise) => {
+          return api.rpc.chain.getBlock(blockHash);
+        }),
       ]);
-      // debugger;
+      // const blockInfo: any = await CrustPool.Run<any>((api: ApiPromise) => {
+      //   return api.rpc.chain.getBlock(blockHash);
+      // });
       block = blockInfo.block;
       events = blockInfo.events;
       extrinsics = blockInfo.extrinsics;
-      // debugger;
       author = blockInfo.author?.toHuman();
     } catch (error) {
-      console.error(error);
+      throw `${blockNum} info not find`;
     }
-    // debugger;
-    let blockHeader = block?.header?.toHuman(); //区块头信息
-    blockHeader = blockHeader ? blockHeader : {};
+
+    let blockHeader = block?.header?.toHuman(); // 区块头信息
+    blockHeader = blockHeader || {};
     const {
       parentHash,
       stateRoot,
@@ -82,24 +80,22 @@ export async function queryOneBlockByBlockNum(
             specVersion: 运行时版本
         */
     const [lastFinalizedBlockHash, specVersion] = await Promise.all([
-      api?.rpc.chain.getFinalizedHead().then((res: any) => res.toHuman()),
-      // api.derive.accounts.info(author),
-      api.rpc.state
-        .getRuntimeVersion(blockHash)
-        .then((res: any) => Number(res.toJSON().specVersion)),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.rpc.chain.getFinalizedHead();
+      }).then((res: any) => res.toHuman()),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.rpc.state.getRuntimeVersion(blockHash);
+      }).then((res: any) => Number(res?.toJSON().specVersion)),
     ]);
-    const accountDisplay = (
-      await getAccountDisplay([{address: author}], api)
-    )[0];
-    const finalizedBlock: any = await api.rpc.chain.getBlock(
-      lastFinalizedBlockHash as string
-    );
-    const lastBlockNum: any = finalizedBlock?.block.header.number.toJSON();
-    // let lastBlockNum: any = (await api?.rpc.chain.getBlock(lastFinalizedBlockHash as string))?.block.header.number.toJSON()//最新确认区块高度
+    const accountDisplay = (await getAccountDisplay([{address: author}]))[0];
+    const finalizedBlock: any = await CrustPool.Run<any>((api: ApiPromise) => {
+      return api.rpc.chain.getBlock(lastFinalizedBlockHash as string);
+    });
+    const lastBlockNum: any = finalizedBlock?.block.header.number?.toJSON();
     let finalized: Status;
-    // debugger;
-    const blockTimestamp: number = await getBlockTimestamp(extrinsics, 3, api);
-    // debugger;
+
+    const blockTimestamp: number = await getBlockTimestamp(extrinsics, 3);
+
     if (lastBlockNum - blockNum < CONFIRM_BLOCK) {
       /* 确认中 */
       finalized = Status.No;
@@ -123,67 +119,69 @@ export async function queryOneBlockByBlockNum(
       accountDisplay: JSON.stringify(accountDisplay),
     };
     /* ce_extrinsic列表 */
-    // debugger;
-    const ceExtrinsicLists: CeExtrinsic[] = extrinsics.map(
-      (item: any, curIndex: number): CeExtrinsic => {
-        // debugger;
 
-        const extrinsicFinalized: Status = isExtrinsicSuccess(item, api);
-        const it: Extrinsic = item.extrinsic;
-        // api.events.system.ExtrinsicFailed.is()
-        /* args: [{name: 'curr_pk', type: 'SworkerPubKey'},...] */
-        const args: any = it.meta.args.toHuman();
-        /* argsValues对应args的值 */
-        // const argsValues = it.args.map((it: any) => it.toHuman());
-        const argsValues = it.args.map((it: any) => it.toJSON());
-        // debugger;
-        const params = args?.map((it: any, curIndex: number) => ({
-          ...it,
-          value: argsValues[curIndex],
-        }));
-        // debugger;
-        const txToHuman: any = it.toHuman();
-        // const txToJSON: Extrinsic = JSON.parse(it.toString());
-        // const {method} = txToJSON;
-        const {method: callModuleFunction, section: callModule} =
-          txToHuman.method;
-        const {
-          signature = '',
-          signer = '',
-          nonce = 0,
-          isSigned = 0,
-        } = txToHuman;
+    const ceExtrinsicLists: CeExtrinsic[] = await Promise.all(
+      extrinsics.map(
+        async (item: any, curIndex: number): Promise<CeExtrinsic> => {
+          const extrinsicFinalized: Status = await CrustPool.Run<any>(
+            (api: ApiPromise) => {
+              return Promise.resolve(isExtrinsicSuccess(item, api));
+            }
+          );
+          const it: Extrinsic = item.extrinsic;
+          // api.events.system.ExtrinsicFailed.is()
+          /* args: [{name: 'curr_pk', type: 'SworkerPubKey'},...] */
+          const args: any = it.meta.args.toHuman();
+          /* argsValues对应args的值 */
+          // const argsValues = it.args.map((it: any) => it.toHuman());
+          const argsValues = it.args.map((it: any) => it?.toJSON());
 
-        // let transfer = callModule === 'balances' ? params.find((it: { name: string, type: string, value: string }) => it.name === 'dest')?.value : '';
-        // transfer = transfer ? transfer : '';
+          const params = args?.map((it: any, curIndex: number) => ({
+            ...it,
+            value: argsValues[curIndex],
+          }));
 
-        const ceExtrinsic: CeExtrinsic = {
-          extrinsicSort: getSortIndex(`${blockNum}-${curIndex}`),
-          lifetime:
-            callModule === 'timestamp'
-              ? ''
-              : JSON.stringify({birth: blockNum - 4, death: blockNum + 60}),
-          params: JSON.stringify(params),
-          extrinsicIdx: curIndex,
-          extrinsicIndex: `${blockNum}-${curIndex}`,
-          extrinsicHash: it.hash.toHuman() as string,
-          blockHash,
-          blockNum,
-          blockTimestamp,
-          callModule,
-          callModuleFunction,
-          accountId: signer,
-          accountDisplay: '', //下边会统一获取
-          fee: '0',
-          finalized,
-          signed: isSigned ? Status.Yes : Status.No,
-          nonce: removeDot(nonce),
-          signature,
-          transfer: '', //下边会统一获取
-          success: extrinsicFinalized,
-        };
-        return ceExtrinsic;
-      }
+          const txToHuman: any = it.toHuman();
+          const {method: callModuleFunction, section: callModule} =
+            txToHuman.method;
+          const {
+            signature = '',
+            signer = '',
+            nonce = 0,
+            isSigned = 0,
+          } = txToHuman;
+
+          // let transfer = callModule === 'balances' ? params.find((it: { name: string, type: string, value: string }) => it.name === 'dest')?.value : '';
+          // transfer = transfer ? transfer : '';
+
+          const ceExtrinsic: CeExtrinsic = {
+            extrinsicSort: getSortIndex(`${blockNum}-${curIndex}`),
+            lifetime:
+              callModule === 'timestamp'
+                ? ''
+                : JSON.stringify({birth: blockNum - 4, death: blockNum + 60}),
+            params: JSON.stringify(params),
+            extrinsicIdx: curIndex,
+            extrinsicIndex: `${blockNum}-${curIndex}`,
+            extrinsicHash: it.hash.toHuman() as string,
+            blockHash,
+            blockNum,
+            blockTimestamp,
+            callModule,
+            callModuleFunction,
+            accountId: signer,
+            accountDisplay: '', // 下边会统一获取
+            fee: '0',
+            finalized,
+            signed: isSigned ? Status.Yes : Status.No,
+            nonce: removeDot(nonce),
+            signature,
+            transfer: '', // 下边会统一获取
+            success: extrinsicFinalized,
+          };
+          return ceExtrinsic;
+        }
+      )
     );
     /*
             统一获取extrinsic中transfer字段
@@ -191,12 +189,12 @@ export async function queryOneBlockByBlockNum(
                 暂时发现subscan的交易中callModule为balances  且callModuleFunction为transferKeepAlive或transfer
                     才有transfer字段
         */
-    const ceExtrinsicListParams: {
+    const ceExtrinsicListParams: Array<{
       to: string;
       amount: number;
       index: number;
       from: string;
-    }[] = ceExtrinsicLists
+    }> = ceExtrinsicLists
       .map((it, index) => {
         return {
           from: it.accountId,
@@ -227,8 +225,7 @@ export async function queryOneBlockByBlockNum(
       });
     /* 统一获取extrinsic中transfer里的to对应的accountDisplay */
     const toAccountDisplays = await getAccountDisplay(
-      ceExtrinsicListParams.map(it => ({address: it.to})),
-      api
+      ceExtrinsicListParams.map(it => ({address: it.to}))
     );
     ceExtrinsicListParams.forEach((it, curIndex) => {
       const targetTransfer: {
@@ -247,14 +244,13 @@ export async function queryOneBlockByBlockNum(
 
     /* 统一获取extrinsic中accountId对应的accountDisplay */
     const extrinsicAccountDisplays = await getAccountDisplay(
-      ceExtrinsicLists.map(it => ({address: it.accountId})),
-      api
+      ceExtrinsicLists.map(it => ({address: it.accountId}))
     );
     ceExtrinsicLists.forEach((item, index: number) => {
       item.accountDisplay = JSON.stringify(extrinsicAccountDisplays[index]);
     });
     /* ce_events列表 */
-    // debugger;
+
     const ceEventLists: CeEvent[] = events.map(
       (it: any, curIndex: number): CeEvent => {
         /*
@@ -283,7 +279,7 @@ export async function queryOneBlockByBlockNum(
                     topics: []
                 }
             */
-        // debugger;
+
         // const {hash} = it;
         const {meta, data} = it.event;
         it = it.toHuman();
@@ -292,7 +288,7 @@ export async function queryOneBlockByBlockNum(
         const {ApplyExtrinsic, asApplyExtrinsic} = phase;
         const allpyExtrinsicIndex =
           asApplyExtrinsic !== undefined ? asApplyExtrinsic : ApplyExtrinsic;
-        // debugger;
+
         const args = meta.args.toHuman();
         const argsValue = data.toHuman();
         const params = JSON.stringify(
@@ -303,10 +299,10 @@ export async function queryOneBlockByBlockNum(
         );
         let extrinsicHash =
           extrinsics[allpyExtrinsicIndex]?.extrinsic.hash.toHuman();
-        extrinsicHash = extrinsicHash ? extrinsicHash : '';
+        extrinsicHash = extrinsicHash || '';
         let extrinsicIndex =
           ceExtrinsicLists[allpyExtrinsicIndex]?.extrinsicIndex;
-        extrinsicIndex = extrinsicIndex ? extrinsicIndex : '';
+        extrinsicIndex = extrinsicIndex || '';
         const success: Status =
           allpyExtrinsicIndex === undefined
             ? Status.Yes
@@ -316,7 +312,7 @@ export async function queryOneBlockByBlockNum(
           extrinsicIdx = -1;
         }
         // api.events.system.ExtrinsicFailed.is()
-        // debugger;
+
         const eventItem: CeEvent = {
           // eventHash: hash.toHuman(),
           eventSort: getSortIndex(`${blockNum}-${curIndex}`),
@@ -338,27 +334,23 @@ export async function queryOneBlockByBlockNum(
       }
     );
     /* ce_transfer列表 */
-    // debugger;
+
     const ceTransferLists: CeTransfer[] = events
       .map((it: any, curIndex: number): CeTransfer | null => {
         if (it.event.method !== 'Transfer') {
           /* 过滤掉非转账的事件 */
           return null;
         }
-
-        // debugger;
-        // const transferToJson = JSON.parse(it.toString());
-        // debugger;
         const {event, phase} = it;
         const {section} = event;
-        const data = it.event.toJSON().data;
+        const data = it.event?.toJSON().data;
         const [from, to, amount] = data;
         const {asApplyExtrinsic, ApplyExtrinsic} = phase;
         const allpyExtrinsicIndex =
           asApplyExtrinsic !== undefined ? asApplyExtrinsic : ApplyExtrinsic;
-        // debugger;
+
         const ceTransfer: CeTransfer = {
-          amount: trillionCruFormat(amount), //返回的是720136800,subscan显示的是0.0007201368   0.000720
+          amount: trillionCruFormat(amount), // 返回的是720136800,subscan显示的是0.0007201368   0.000720
           asset_symbol: '',
           eventIndex: `${blockNum}-${curIndex}`,
           // eventHash: hash.toHuman(),
@@ -379,24 +371,23 @@ export async function queryOneBlockByBlockNum(
       })
       .filter((it: any) => it) as CeTransfer[];
     /* ce_reward_slash列表 */
-    // debugger;
+
     const ceRewardSlashLists: CeRewardSlash[] = events
       .map((it: any, curIndex: number): CeRewardSlash | null => {
-        // debugger;
         if (!['Reward', 'Slash'].includes(it.event.method)) {
           /* 过滤掉非奖励和惩罚的事件 */
           return null;
         }
         // const it: EventRecord = item;
-        // debugger;
+
         const {event, phase} = it;
         const {method, section, meta, data} = event;
-        const dataData = it.event.toJSON().data;
+        const dataData = it.event?.toJSON().data;
         const [accountId, amount]: any = dataData;
         const asApplyExtrinsic = phase.asApplyExtrinsic.toHuman();
-        // debugger;
-        const args: string[] = meta.args.toHuman() as string[]; //['AccountId', 'SworkerPubKey']
-        const argsValue: string[] = data.toHuman() as string[]; //['5EWKQc9fNccv4WrLrNXS6DHqNQHG4F6b1MhnGsvU5VhqbMmz', '0xf580f355209251658531afec798a93985906e8c8eceb36b…e947a5f7679b3ae0d8555060d3fdb6595e13391478cfda01']
+
+        const args: string[] = meta.args.toHuman() as string[]; // ['AccountId', 'SworkerPubKey']
+        const argsValue: string[] = data.toHuman() as string[]; // ['5EWKQc9fNccv4WrLrNXS6DHqNQHG4F6b1MhnGsvU5VhqbMmz', '0xf580f355209251658531afec798a93985906e8c8eceb36b…e947a5f7679b3ae0d8555060d3fdb6595e13391478cfda01']
         const params = JSON.stringify(
           args.map((it: any, curIndex: number) => ({
             type: it,
@@ -424,7 +415,6 @@ export async function queryOneBlockByBlockNum(
         return result;
       })
       .filter((it: any) => it) as CeRewardSlash[];
-    // debugger;
 
     const resBlock: Block = {
       ...ceBlock,
@@ -435,21 +425,18 @@ export async function queryOneBlockByBlockNum(
     };
     return resBlock;
   } catch (error) {
-    Log.error(`${blockNum} block error ${error} `);
     throw `${blockNum} block error`;
   }
 }
 export async function queryBlockByBlockNums(
-  blockNums: number[],
-  api: ApiPromise
+  blockNums: number[]
 ): Promise<Block[]> {
   try {
     const pAll = blockNums.map(item => {
-      return queryOneBlockByBlockNum(item, api);
+      return queryOneBlockByBlockNum(item);
     });
-    const result: Block[] = await Promise.all(pAll);
-
-    return result;
+    const result: any = await Promise.all(pAll);
+    return result || [];
   } catch (error) {
     throw new Error(error);
   }

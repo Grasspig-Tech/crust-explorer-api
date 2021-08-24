@@ -3,23 +3,24 @@ import {ApiPromise} from '@polkadot/api';
 import {EraArg, Role} from '../../interface';
 import {CeMember} from '../../model';
 import {getAccountDisplay} from '../../util';
-
+import CrustPool from '../../crust-pool/';
 /**
  *
  * @param param0
  * @returns
  */
 export async function queryMember(
-  accounts: {
-    address: string; //存储账户，不能是控制账户
+  accounts: Array<{
+    address: string; // 存储账户，不能是控制账户
     role: Role;
     rank: number;
-  }[],
-  api: ApiPromise,
+  }>,
   eraInfo: EraArg
 ): Promise<CeMember[]> {
   const rewardPoints = (
-    await api.query.staking.erasRewardPoints(eraInfo.activeEra)
+    await CrustPool.Run<any>((api: ApiPromise) => {
+      return api.query.staking.erasRewardPoints(eraInfo.activeEra);
+    })
   ).toJSON().individual as {[tmp: string]: number};
 
   const pAll = accounts.map(it => {
@@ -28,16 +29,14 @@ export async function queryMember(
         ...it,
         rewardPoint: rewardPoints[it.address] ? rewardPoints[it.address] : -1,
       },
-      api,
       eraInfo
     );
   });
-  try {
-    const ceMemberList = await Promise.all(pAll);
-    return ceMemberList;
-  } catch (error) {
-    throw new Error(error);
-  }
+  return await Promise.all(pAll)
+    .then(res => res)
+    .catch(err => {
+      throw err;
+    });
 }
 export async function queryOneMember(
   {
@@ -51,27 +50,29 @@ export async function queryOneMember(
     rank: number;
     rewardPoint: number;
   },
-  api: ApiPromise,
   eraInfo: EraArg
 ): Promise<CeMember> {
-  // debugger;
   if (!address) {
     throw 'address not find';
   }
-  const queryRes = await api.queryMulti([
-    [api.query.staking.bonded, address],
-    [api.query.staking.erasStakers, [eraInfo.activeEra, address]],
+  const queryRes = await Promise.all([
+    CrustPool.Run<any>((api: ApiPromise) => {
+      return api.query.staking.bonded(address);
+    }),
+    CrustPool.Run<any>((api: ApiPromise) => {
+      return api.query.staking.erasStakers(eraInfo.activeEra, address);
+    }),
   ]);
   /* 控制账户地址 */
   const controllerAccountAddress: string = queryRes[0].toJSON() as string;
-  const [accountDisplay, controllerAccountDisplay] = await getAccountDisplay(
-    [{address}, {address: controllerAccountAddress}],
-    api
-  );
+  const [accountDisplay, controllerAccountDisplay] = await Promise.all([
+    getAccountDisplay([{address}]),
+    getAccountDisplay([{address: controllerAccountAddress}]),
+  ]);
   /* 提名人 */
-  const nominator: {who: string; value: number | string}[] = (
+  const nominator: Array<{who: string; value: number | string}> = (
     queryRes[1].toJSON() as any
-  ).others as {who: string; value: number | string}[];
+  ).others as Array<{who: string; value: number | string}>;
   const ceMember: CeMember = {
     era: eraInfo.activeEra,
     role,

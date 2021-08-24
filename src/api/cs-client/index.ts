@@ -10,7 +10,7 @@ import {SPLORER_API, SPLORER_AUTHORIZATION} from '../../config';
 export default class CSClient {
   private api: string = SPLORER_API; // crust storage api 地址
   private authorization: string = SPLORER_AUTHORIZATION; // crust storage authorization
-  public readonly client: Got; // 后面不可以修改
+  readonly client: Got; // 后面不可以修改
   constructor(options: object = {}) {
     this.client = got.extend({
       prefixUrl: this.api,
@@ -34,7 +34,7 @@ export default class CSClient {
    * @return {*}  {Promise<any>}
    * @memberof CSClient
    */
-  public async queryOwners(
+  async queryOwners(
     address: string,
     pageSize = 20,
     pageIndex = 1
@@ -47,7 +47,7 @@ export default class CSClient {
       },
     });
   }
-  public async queryMerchants(): Promise<any> {
+  async queryMerchants(): Promise<any> {
     return await this.client.get('./merchantsOverview');
   }
 }

@@ -26,7 +26,7 @@ export interface CommitErrorMessage {
 }
 
 //
-export type ErrorConfig = {
+export interface ErrorConfig {
   /**
    * 错误标识码，0为正常
    *
@@ -43,7 +43,7 @@ export type ErrorConfig = {
    * @memberof ERROR_CONFIG
    */
   task: number | ((payload: any) => any | Promise<any>);
-};
+}
 
 /**
  * 请求数据类型
@@ -79,9 +79,9 @@ export interface ResponseInfo {
  */
 export interface AccountArg {
   address: string;
-  role?: Role; //1为验证人，2为候选验证人,3为提名人
-  accountType: AccountType; //1为存储账户，2为控制账户
-  rank?: number; //排名
+  role?: Role; // 1为验证人，2为候选验证人,3为提名人
+  accountType: AccountType; // 1为存储账户，2为控制账户
+  rank?: number; // 排名
   isCouncilMember?: number;
   isEvmContract?: number;
   isRegistrar?: number;

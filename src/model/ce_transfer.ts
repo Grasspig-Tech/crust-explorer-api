@@ -7,7 +7,7 @@ export interface CeTransfer {
   eventIndex: string;
   // eventHash: string,
   extrinsicIndex: string;
-  hash: string; //交易hash
+  hash: string; // 交易hash
   blockNum: number;
   blockTimestamp: number;
   module: string;

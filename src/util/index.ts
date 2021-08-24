@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import Decimal from 'decimal.js';
 import {ApiPromise} from '@polkadot/api';
+import CrustPool from '../crust-pool';
 import {
   ClassifyArg,
   ClassifyResult,
@@ -22,9 +23,7 @@ export function isExtrinsicSuccess(extrinsic: any, api: ApiPromise): Status {
     return Status.No;
   }
   for (let i = 0; i < extrinsic.events.length; i++) {
-    // debugger;
     if (api.events.system.ExtrinsicFailed.is(extrinsic.events[i])) {
-      // debugger;
       /* 走进这里，说明交易失败 */
       return Status.No;
     }
@@ -33,59 +32,81 @@ export function isExtrinsicSuccess(extrinsic: any, api: ApiPromise): Status {
 }
 
 /*
-   一定要确保arr1和arr2各自中没有重复的数据
+  一定要确保arr1和arr2各自中没有重复的数据
+  找出共有的，单独有的
 */
 
 export function compare(arr1: any[], arr2: any[], key?: string | string[]) {
-  const arr1Only: any = [];
-  const arr2Only: any = [];
+  let arr1Only: any = [];
+  let arr2Only: any = [];
   const common: any = [];
   const keys: string[] = (typeof key === 'string' ? [key] : key) as string[];
-  arr1.forEach(it => {
-    if (key) {
-      // if (!arr2.find(item => item[key] === it[key])) {
-      if (
-        !arr2.find(item => {
-          for (let i = 0; i < keys.length; i++) {
-            if (it[keys[i]] !== item[keys[i]]) {
-              return false;
-            }
+  const filter: any = {};
+  if (key) {
+    const len = keys.length;
+    let k: any;
+    const result: any = [];
+    for (let i = 0; i < len; i++) {
+      k = keys[i].trim();
+      arr1.forEach(item1 => {
+        let v = item1[k];
+        if (v && (!filter[k] || !filter[k][v])) {
+          if (!filter[k]) {
+            filter[k] = {};
           }
-          return true;
-        })
-      ) {
-        arr1Only.push(it);
-      } else {
-        common.push(it);
-      }
-    } else {
-      if (!arr2.includes(it)) {
-        arr1Only.push(it);
-      } else {
-        common.push(it);
-      }
+          v = v.toString().trim();
+          filter[k][v] = 0x1;
+          result.push(item1); // 去重后的
+        }
+      });
+      arr2.forEach(item2 => {
+        const v = item2[k];
+        if (v && filter[k][v]) {
+          // 共有的 k v
+          common.push(result.includes(item2));
+        } else if (v && (!filter[k] || !filter[k][v])) {
+          // v2 独有的
+          arr2Only.push(item2);
+        } else {
+          arr1Only.push(item2);
+        }
+      });
     }
-  });
-  arr2.forEach(it => {
-    if (key) {
-      if (
-        !arr1.find(item => {
-          for (let i = 0; i < keys.length; i++) {
-            if (it[keys[i]] !== item[keys[i]]) {
-              return false;
-            }
-          }
-          return true;
-        })
-      ) {
-        arr2Only.push(it);
-      }
-    } else {
-      if (!arr1.includes(it)) {
-        arr2Only.push(it);
-      }
+  } else {
+    // 替换
+    let tmp: any = [];
+    if (arr1.length > arr2.length) {
+      tmp = arr1;
+      arr1 = arr2;
+      arr2 = tmp;
+      tmp = null;
     }
-  });
+    arr1.forEach(item => {
+      filter[item] = 0x1;
+    });
+    const filter2: any = {};
+    arr2.forEach(item => {
+      let v = item;
+      v = v?.toString().trim();
+      if (!filter2[v]) {
+        filter2[v] = 0x1;
+      }
+      if (filter[v] && filter2[v]) {
+        // 共有的 k v
+        common.push(v);
+      } else if (filter[v] && !filter2[v]) {
+        // v1 独有的
+        arr1Only.push(v);
+      } else {
+        arr2Only.push(v);
+      }
+    });
+    if (tmp === null) {
+      tmp = arr1Only;
+      arr1Only = arr2Only;
+      arr2Only = tmp;
+    }
+  }
   return {
     arr1Only,
     arr2Only,
@@ -104,10 +125,14 @@ export function compare(arr1: any[], arr2: any[], key?: string | string[]) {
     id为0x64656d6f63726163的是民主锁定
     解冻中的还不知道
  */
-export async function getLocks(stashAddress: string[], api: ApiPromise) {
-  let res: any = await api.queryMulti([
-    ...(stashAddress.map(it => [api.query.balances.locks, it]) as any),
-  ]);
+export async function getLocks(stashAddress: string[]) {
+  let res: any = await Promise.all(
+    stashAddress.map(it => {
+      return CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.balances.locks(it);
+      });
+    })
+  );
   res = res.map((it: any) => it.toJSON());
   /* 质押锁定 */
   const stakingLock = res.map((it: any) => {
@@ -133,40 +158,40 @@ export async function getLocks(stashAddress: string[], api: ApiPromise) {
 
 /**
  *
- * 暴力去重
+ * 去重
  * @export
  * @param {any[]} repeatData
  * @param {string} [key]
  * @return {*}
  */
 export function filterRepeatData(repeatData: any[], key?: string | string[]) {
-  const filterData: any[] = [];
   if (key && typeof key === 'string') {
     key = [key] as string[];
   }
   if (key) {
-    repeatData.forEach(item => {
-      if (
-        !filterData.find(it => {
-          for (let i = 0; i < (key as string[]).length; i++) {
-            if (it[(key as string[])[i]] !== item[(key as string[])[i]]) {
-              return false;
-            }
+    const filter: any = {};
+    const result: any = [];
+    const len = (key as string[]).length;
+    let k: any;
+    for (let i = 0; i < len; i++) {
+      k = (key as string[])[i].trim();
+      repeatData.forEach(item => {
+        let v = item[k];
+        // 有值并且映射不在
+        if (v && (!filter[k] || !filter[k][v])) {
+          if (!filter[k]) {
+            filter[k] = {};
           }
-          return true;
-        })
-      ) {
-        filterData.push(item);
-      }
-    });
+          v = v.toString().trim();
+          filter[k][v] = 0x1;
+          result.push(item);
+        }
+      });
+    }
+    return result;
   } else {
-    repeatData.forEach(item => {
-      if (!filterData.includes(item)) {
-        filterData.push(item);
-      }
-    });
+    return Array.from(new Set(repeatData));
   }
-  return filterData;
 }
 
 /**
@@ -179,17 +204,21 @@ export function filterRepeatData(repeatData: any[], key?: string | string[]) {
  */
 
 // let res = classifyIdentify([{ type: 'aa', data: ['11', '22'] }, { type: 'bb', data: ['11', '33'] }, { type: 'cc', data: ['22', '44'] }]);
-// debugger;
+
 export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
-  const datas = arg
-    .map(it => it.data)
-    .reduce((prev, cur) => [...prev, ...cur], []);
+  const datas: any = [];
   const filterRepeatDatas: any[] = [];
-  datas.forEach(item => {
-    if (!filterRepeatDatas.includes(item)) {
-      filterRepeatDatas.push(item);
-    }
-  });
+  const len = arg.length;
+  const filter: any = {};
+  for (let i = 0; i < len; i++) {
+    arg[i].data.forEach(item => {
+      const v = item?.toString().trim();
+      if (!filter[v]) {
+        datas.push(item);
+        filter[v] = 0x1;
+      }
+    });
+  }
   const result: ClassifyResult[] = filterRepeatDatas.map(item => {
     const types = (arg.filter(it => it.data.includes(item)) as any).reduce(
       (prev: string[], cur: ClassifyArg) => [...prev, cur.type],
@@ -202,7 +231,6 @@ export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
     return res;
   });
   return result;
-  // allTypes.forEach
 }
 
 /**
@@ -215,16 +243,25 @@ export function classifyIdentify(arg: ClassifyArg[]): ClassifyResult[] {
  */
 export async function getBlockTimestamp(
   info: any,
-  type: number,
-  api: ApiPromise
+  type: number
 ): Promise<number> {
   let extrinsics: any;
   if (type === 1) {
     /* 通过区块高度获取 */
-    const blockHash = await api.rpc.chain.getBlockHash(info);
-    extrinsics = (await api.derive.chain.getBlock(blockHash))?.extrinsics;
+    const blockHash = await CrustPool.Run<any>((api: ApiPromise) => {
+      return api.rpc.chain.getBlockHash(info);
+    });
+    extrinsics = (
+      await CrustPool.Run<any>((api: ApiPromise) => {
+        return api.derive.chain.getBlock(blockHash);
+      })
+    )?.extrinsics;
   } else if (type === 2) {
-    extrinsics = (await api.derive.chain.getBlock(info))?.extrinsics;
+    extrinsics = (
+      await CrustPool.Run<any>((api: ApiPromise) => {
+        return api.derive.chain.getBlock(info);
+      })
+    )?.extrinsics;
   } else if (type === 3) {
     extrinsics = info;
   }
@@ -254,10 +291,10 @@ export function getSortIndex(indexStr: string): string {
   if (theIndex === undefined) {
     throw 'index prams is error';
   }
-  const baseFixNum = 4; //至少4位数
+  const baseFixNum = 4; // 至少4位数
   let sortIndex = theIndex;
   for (let i = theIndex.length; i < baseFixNum; i++) {
-    sortIndex = '0' + sortIndex;
+    sortIndex = `0${sortIndex}`;
   }
   return `${blockNum}${sortIndex}`;
 }
@@ -271,16 +308,16 @@ export function getSortIndex(indexStr: string): string {
  */
 export async function getNominators(
   address: string[],
-  curEra: number,
-  api: ApiPromise
-): Promise<{validatorAddress: string; nominators: any[]}[]> {
-  const queryRes = await api.queryMulti([
-    ...(address.map(it => [
-      api.query.staking.erasStakers,
-      [curEra, it],
-    ]) as any),
-  ]);
-  const nominators = queryRes.map((it: any, index) => ({
+  curEra: number
+): Promise<Array<{validatorAddress: string; nominators: any[]}>> {
+  const queryRes = await Promise.all(
+    address.map(it => {
+      return CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.staking.erasStakers(curEra, it);
+      });
+    })
+  );
+  const nominators = queryRes.map((it: any, index: any) => ({
     validatorAddress: address[index],
     nominators: it.toJSON().others,
   }));
@@ -289,18 +326,16 @@ export async function getNominators(
 
 /* 获取account_display */
 export async function getAccountDisplay(
-  arr: {address: string}[],
-  api: ApiPromise
+  arr: Array<{address: string}>
 ): Promise<AccountDisplay[]> {
-  /* api.derive.accounts.info(vs[0]) */
-  /* api.query.identity.identityOf(accountid) */
   const pAll = arr.map(it => {
-    return api.derive.accounts.info(it.address);
+    return CrustPool.Run<any>((api: ApiPromise) => {
+      return api.derive.accounts.info(it.address);
+    });
     // return api.derive.accounts.info
   });
-  const querRes = await Promise.all(pAll);
-  const res = querRes.map(it => {
-    // debugger;
+  const queryRes = await Promise.all(pAll);
+  const res = queryRes.map(it => {
     const judgementsJson = (it.identity.judgements as any).toJSON
       ? (it.identity.judgements as any)?.toJSON()
       : it.identity.judgements;
@@ -334,19 +369,18 @@ export async function getAccountDisplay(
 }
 
 export async function getControllerAddressByStashAddress(
-  stashAddress: string[],
-  api: ApiPromise
+  stashAddress: string[]
 ): Promise<string[]> {
   const multi: any = stashAddress.map(it => {
-    return [api.query.staking.bonded, it];
+    return CrustPool.Run<any>((api: ApiPromise) => {
+      return api.query.staking.bonded(it);
+    });
   });
-  const res = await api.queryMulti([...multi]);
-  // debugger;
-  const result = res.map(it => {
-    // debugger;
+  const res = await Promise.all(multi);
+  const result = res.map((it: any) => {
     return it.toJSON();
   });
-  // debugger;
+
   return result as string[];
 }
 
@@ -415,25 +449,28 @@ export function ms2S(ms: number) {
  */
 export function dateFormat(date: Date, fmt: string): string {
   const o: any = {
-    'M+': date.getMonth() + 1, //月份
-    'd+': date.getDate(), //日
-    'h+': date.getHours(), //小时
-    'm+': date.getMinutes(), //分
-    's+': date.getSeconds(), //秒
-    'q+': Math.floor((date.getMonth() + 3) / 3), //季度
-    S: date.getMilliseconds(), //毫秒
+    'M+': date.getMonth() + 1, // 月份
+    'd+': date.getDate(), // 日
+    'h+': date.getHours(), // 小时
+    'm+': date.getMinutes(), // 分
+    's+': date.getSeconds(), // 秒
+    'q+': Math.floor((date.getMonth() + 3) / 3), // 季度
+    S: date.getMilliseconds(), // 毫秒
   };
-  if (/(y+)/.test(fmt))
+  if (/(y+)/.test(fmt)) {
     fmt = fmt.replace(
       RegExp.$1,
-      (date.getFullYear() + '').substr(4 - RegExp.$1.length)
+      `${date.getFullYear()}`.substr(4 - RegExp.$1.length)
     );
-  for (const k in o)
-    if (new RegExp('(' + k + ')').test(fmt))
+  }
+  for (const k in o) {
+    if (new RegExp(`(${k})`).test(fmt)) {
       fmt = fmt.replace(
         RegExp.$1,
-        RegExp.$1.length === 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length)
+        RegExp.$1.length === 1 ? o[k] : `00${o[k]}`.substr(`${o[k]}`.length)
       );
+    }
+  }
   return fmt;
 }
 
@@ -447,23 +484,6 @@ export function dateFormat(date: Date, fmt: string): string {
  */
 export function strAllTrim(str: string): string {
   return str.trim().replace(/\s*/g, '');
-}
-
-/**
- * @description 暂停时间 mm
- * @author huazhuangnan
- * @date 2021/09/04
- * @export
- * @param {number} mm
- */
-export function sleep(mm: number): void {
-  const start = Date.now();
-  /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
-  while (1) {
-    const nowTime = Date.now();
-    const offset = nowTime - start;
-    if (offset >= mm) break;
-  }
 }
 
 /**

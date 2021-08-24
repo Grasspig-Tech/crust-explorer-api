@@ -3,7 +3,7 @@ import {Role} from '../interface';
 export interface CeMember {
   id?: number;
   era: number;
-  role: Role; //1验证人 2候选验证人 3提名人
+  role: Role; // 1验证人 2候选验证人 3提名人
   memberRank: number;
   countNominators: number;
   grandpaVote: number;

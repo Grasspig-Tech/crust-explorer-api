@@ -12,9 +12,9 @@ import {LogType} from '../interface';
  * @class Log
  */
 class Log {
-  public dir: string = LOG_DIR;
+  dir: string = LOG_DIR;
   private static instance: Log;
-  public static getInstance(): Log {
+  static getInstance(): Log {
     this.instance = this.instance || new Log();
     return this.instance;
   }
@@ -32,7 +32,7 @@ class Log {
    * @param {string} str
    * @memberof Log
    */
-  public write(type: LogType, str: string): void {
+  write(type: LogType, str: string): void {
     const time = dateFormat(new Date(), 'yyyy-MM-dd hh:mm:ss');
     const oldTime = dateFormat(
       new Date(new Date().setDate(new Date().getDate() - LOG_SAVA_DAY)),
@@ -70,7 +70,7 @@ class Log {
    * @param {string} str
    * @memberof Log
    */
-  public debug(str: string): Log {
+  debug(str: string): Log {
     this.write('DEBUG', str);
     return this;
   }
@@ -82,7 +82,7 @@ class Log {
    * @param {string} str
    * @memberof Log
    */
-  public info(str: string): Log {
+  info(str: string): Log {
     this.write('INFO', str);
     return this;
   }
@@ -94,7 +94,7 @@ class Log {
    * @param {string} str
    * @memberof Log
    */
-  public warn(str: string): Log {
+  warn(str: string): Log {
     this.write('WARN', str);
     return this;
   }
@@ -106,7 +106,7 @@ class Log {
    * @param {string} str
    * @memberof Log
    */
-  public error(str: string): Log {
+  error(str: string): Log {
     this.write('ERROR', str);
     return this;
   }
@@ -119,7 +119,7 @@ class Log {
    * @param {string} date
    * @memberof Log
    */
-  public read(date: string): string {
+  read(date: string): string {
     const filename = path.resolve(this.dir, `./${date}.log`);
     let rsp = '';
     // have file
@@ -134,7 +134,7 @@ class Log {
     }
     return rsp;
   }
-  public delete(date: string): void {
+  delete(date: string): void {
     const filename = path.resolve(this.dir, `./${date}.log`);
     if (fs.existsSync(filename)) {
       fs.unlinkSync(filename); // 删除

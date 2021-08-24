@@ -1,30 +1,19 @@
 import {ApiPromise} from '@polkadot/api';
 import {queryBlockByBlockNums} from '../../api/block';
-// import { Block } from "../../interface"
+import CrustPool from '../../crust-pool';
 /**
  * 通过区块头获取区块，支持多个
  *
  * @export
  */
-export async function getBlockByBlockNum(blockNums: number[], api: ApiPromise) {
-  try {
-    // let queryPromiseAll = blockNums.map(num => {
-    //     return queryOneBlockByBlockNum(num, api);
-    // });
-    // let blocks = [];
-    // for (let i = 0; i < queryPromiseAll.length; i++) {
-    //     try {
-    //         blocks.push(await queryPromiseAll[i]);
-    //     } catch (error) {
-    //         blocks.push({ blockNum: blockNums[i] });
-    //     }
-    // };
-    const blocks = await queryBlockByBlockNums(blockNums, api);
-    // let blocks: Block[] = await Promise.all(queryPromiseAll);
-    return blocks;
-  } catch (error) {
-    throw new Error(error);
-  }
+export async function getBlockByBlockNum(blockNums: number[]) {
+  return await queryBlockByBlockNums(blockNums)
+    .then(blocks => {
+      return blocks;
+    })
+    .catch(err => {
+      throw err;
+    });
 }
 
 /**
@@ -34,21 +23,18 @@ export async function getBlockByBlockNum(blockNums: number[], api: ApiPromise) {
  * @param {{ row: number }} { row = 1 }
  * @return {*}
  */
-export async function getLastBlock({
-  row = 1,
-  api,
-}: {
-  row: number;
-  api: ApiPromise;
-}) {
+export async function getLastBlock({row = 1}: {row: number}) {
   try {
-    const lastBlockNum: number = (await api?.query.system.number())?.toJSON();
-    const blockNums: number[] = []; //查询的区块高度列表
+    const lastBlockNum: number = (
+      await CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.system.number();
+      })
+    )?.toJSON();
+    const blockNums: number[] = []; // 查询的区块高度列表
     for (let i = lastBlockNum; i > lastBlockNum - row; i--) {
       blockNums.push(i);
     }
-    // debugger;
-    const blocks = await queryBlockByBlockNums(blockNums, api);
+    const blocks = await queryBlockByBlockNums(blockNums);
     return blocks;
   } catch (error) {
     throw new Error(error);

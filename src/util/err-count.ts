@@ -5,19 +5,19 @@ class ErrCount {
    *
    * @param init 初始化错误次数
    */
-  public init(init = 0): void {
+  init(init = 0): void {
     this.errCount = init;
   }
   /**
    * 添加错误次数
    */
-  public add(): void {
+  add(): void {
     this.errCount++;
   }
   /**
    * 获取当前错误次数
    */
-  public get(): number {
+  get(): number {
     return this.errCount;
   }
   /**
@@ -26,7 +26,7 @@ class ErrCount {
    * @param {number} n
    * @memberof ErrCount
    */
-  public set(n: number): void {
+  set(n: number): void {
     this.errCount = n;
   }
 }

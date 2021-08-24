@@ -22,6 +22,8 @@ import {
 import {queryPledge} from '../pledge';
 import {queryMember} from '../member';
 import {CeNominator} from '../../model';
+import CrustPool from '../../crust-pool/';
+import {queryAccount} from '../account';
 /**
  * 通过验证人hash查询并返回ce_validator信息
  *
@@ -31,16 +33,21 @@ import {CeNominator} from '../../model';
  * @param {ApiPromise} api
  * @return {*}  {Promise<CeValidatorPledge>}
  */
-export async function queryEras({api}: {api: ApiPromise}) {
-  // debugger;
+export async function queryEras() {
   /* 获取所有账户 */
   let [overview, waitingValidatorAddress, chainAllAccount]: any =
     await Promise.all([
-      api.derive.staking.overview(),
-      api.derive.staking.waitingInfo(),
-      api.query.system.account.entries(),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.derive.staking.overview();
+      }),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.derive.staking.waitingInfo();
+      }),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.system.account.entries();
+      }),
     ]);
-  overview = overview ? overview : undefined;
+  overview = overview || undefined;
   chainAllAccount = chainAllAccount.map((it: any) => it[0].toHuman()[0]);
   waitingValidatorAddress = waitingValidatorAddress.info.map((it: any) => {
     return {
@@ -49,7 +56,6 @@ export async function queryEras({api}: {api: ApiPromise}) {
     };
   });
 
-  // debugger;
   const activeEra: number = overview.activeEra.toJSON();
   const activeEraStart: number =
     (overview.activeEraStart.toJSON() as number) / 1000;
@@ -63,7 +69,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
     overview.validators as any
   ).toJSON() as string[];
   /* 总数 = api.derive.staking.overview()返回的nextElected剔除验证人 + api.derive.staking.waitingInfo() */
-  const totalWaitingValidatorAddress = [];
+  let totalWaitingValidatorAddress: any[] = [];
   /* 上边总数第一个 */
   const filterWaitingValidator = overview.nextElected
     .map((it: any) => it.toJSON())
@@ -71,17 +77,19 @@ export async function queryEras({api}: {api: ApiPromise}) {
       return !validatorAddresses.includes(item);
     });
   /* 查询每个候选验证人的控制账户地址 */
-  // debugger;
+
   const addStashFilterWaitingValidator = (
-    await getControllerAddressByStashAddress(filterWaitingValidator, api)
+    await getControllerAddressByStashAddress(filterWaitingValidator)
   ).map((it: any, curIndex: number) => ({
     stashAddress: filterWaitingValidator[curIndex],
     controllerAddress: it,
   }));
-  //添加
-  // debugger;
-  totalWaitingValidatorAddress.push(...waitingValidatorAddress);
-  totalWaitingValidatorAddress.push(...addStashFilterWaitingValidator);
+  // 添加
+
+  totalWaitingValidatorAddress = [
+    ...waitingValidatorAddress,
+    ...addStashFilterWaitingValidator,
+  ];
 
   const targetWaitingValidator = totalWaitingValidatorAddress.map(
     (hash: any, rank: number) => {
@@ -105,25 +113,24 @@ export async function queryEras({api}: {api: ApiPromise}) {
   /* 查询验证人和候选验证人的质押信息 */
   const pledgeAll = await queryPledge(
     [...targetValidator, ...targetWaitingValidator],
-    api,
     eraInfo
   );
-  const [validatorsNominators, waitingValidatorNominators]: {
-    validatorAddress: string;
-    nominators: any[];
-  }[][] = await Promise.all([
+  const [validatorsNominators, waitingValidatorNominators]: Array<
+    Array<{
+      validatorAddress: string;
+      nominators: any[];
+    }>
+  > = await Promise.all([
     getNominators(
       targetValidator.map(it => it.address),
-      activeEra,
-      api
+      activeEra
     ) as any,
     getNominators(
       targetWaitingValidator.map(it => it.address),
-      activeEra,
-      api
+      activeEra
     ) as any,
   ]);
-  // debugger;
+
   let totalNominators: CeNominator[] = [
     validatorsNominators,
     waitingValidatorNominators,
@@ -137,14 +144,13 @@ export async function queryEras({api}: {api: ApiPromise}) {
           }, 0);
         const res: CeNominator[] = it.nominators.map(
           (ittt: any, rank: number): CeNominator => {
-            // debugger;
             return {
               era: activeEra,
               nominatorRank: rank,
               bonded: trillionCruFormat(ittt.value),
               nominatorAddress: ittt.who,
               validatorAddress: it.validatorAddress,
-              accountDisplay: '', //下边代码有加上
+              accountDisplay: '', // 下边代码有加上
               quotient: String(Number(ittt.value) / totalBonded),
             };
           }
@@ -155,8 +161,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
     .reduce((prev, cur) => [...prev, ...cur], [])
     .reduce((prev: any[], cur: any[]) => [...prev, ...cur], []);
   const nominatorAccountDisplays: any = await getAccountDisplay(
-    totalNominators.map((it: any) => ({address: it.nominatorAddress})),
-    api
+    totalNominators.map((it: any) => ({address: it.nominatorAddress}))
   );
 
   totalNominators = totalNominators.map((it: any, curIndex: number) => ({
@@ -181,7 +186,6 @@ export async function queryEras({api}: {api: ApiPromise}) {
     .reduce((prev, cur) => [...prev, ...cur], []);
   const filterRepeatNominator: any = [];
   totalNominators.forEach((it: any) => {
-    // debugger;
     if (
       !filterRepeatNominator.find(
         (item: any) => item.nominatorAddress === it.nominatorAddress
@@ -192,20 +196,19 @@ export async function queryEras({api}: {api: ApiPromise}) {
   });
   const tmpTotalValidator = [...targetValidator, ...targetWaitingValidator];
   const controllerAddress = await getControllerAddressByStashAddress(
-    tmpTotalValidator.map(it => it.address),
-    api
+    tmpTotalValidator.map(it => it.address)
   );
   const validatorMapToAccount: AccountArg[] = tmpTotalValidator
     .map((it: any, curIndex: number) => {
       const res: AccountArg[] = [
         {
           address: it.address,
-          role: it.role, //1为验证人，2为候选验证人,3为提名人
+          role: it.role, // 1为验证人，2为候选验证人,3为提名人
           accountType: AccountType.Stash,
         },
         {
           address: controllerAddress[curIndex],
-          role: it.role, //1为验证人，2为候选验证人,3为提名人
+          role: it.role, // 1为验证人，2为候选验证人,3为提名人
           accountType: AccountType.Controller,
         },
       ];
@@ -214,8 +217,7 @@ export async function queryEras({api}: {api: ApiPromise}) {
     .reduce((prev, cur) => [...prev, ...cur], []);
   const nominatorControllerAddress: string[] =
     await getControllerAddressByStashAddress(
-      filterRepeatNominator.map((it: any) => it.nominatorAddress),
-      api
+      filterRepeatNominator.map((it: any) => it.nominatorAddress)
     );
   const filterRepeatNominatorToAccount: AccountArg[] = filterRepeatNominator
     .map((it: any, curIndex: number) => {
@@ -237,10 +239,16 @@ export async function queryEras({api}: {api: ApiPromise}) {
 
   /* 获取议会成员，技术委员会成员，身份注册商成员 */
   let [councilMembers, technicalCommittees, registrars]: any =
-    await api.queryMulti([
-      [api.query.council.members],
-      [api.query.technicalCommittee.members],
-      [api.query.identity.registrars],
+    await Promise.all([
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.council.members();
+      }),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.technicalCommittee.members();
+      }),
+      CrustPool.Run<any>((api: ApiPromise) => {
+        return api.query.identity.registrars();
+      }),
     ]);
   councilMembers = councilMembers.toJSON();
   technicalCommittees = technicalCommittees.toJSON();
@@ -264,9 +272,9 @@ export async function queryEras({api}: {api: ApiPromise}) {
     technicalCommitteesControllAddress,
     registrarsAddress,
   ] = await Promise.all([
-    getControllerAddressByStashAddress(councilMembers, api),
-    getControllerAddressByStashAddress(technicalCommittees, api),
-    getControllerAddressByStashAddress(registrars, api),
+    getControllerAddressByStashAddress(councilMembers),
+    getControllerAddressByStashAddress(technicalCommittees),
+    getControllerAddressByStashAddress(registrars),
   ]);
 
   const controllClassifyArgs: ClassifyArg[] = [
@@ -308,12 +316,8 @@ export async function queryEras({api}: {api: ApiPromise}) {
       );
       const res: AccountArg = {
         address: item.data,
-        accountType: item.accountType, //1为存储账户，2为控制账户
+        accountType: item.accountType, // 1为存储账户，2为控制账户
         ...identifyObj,
-        // isCouncilMember?: number,
-        // isEvmContract?: number,
-        // isRegistrar?: number,
-        // isTechcommMember?: number,
       };
       return res;
     }
@@ -329,22 +333,17 @@ export async function queryEras({api}: {api: ApiPromise}) {
   allAccount = filterRepeatData(allAccount, ['address', 'accountType']);
 
   // /* 获取所有账户 */
-  // let chainAllAccount: any[] = await api.query.system.account.entries();
-  // chainAllAccount = chainAllAccount.map(it => it[0].toHuman()[0]);
 
   /* chainAllAccountOnlyId: allAccount中没有的stash账户和控制账户 */
   const chainAllAccountOnlyId = compare(
-    chainAllAccount,
+    filterRepeatData(chainAllAccount),
     filterRepeatData(allAccount.map(it => it.address))
   ).arr1Only;
   const chainAllAccountOnlyControllId =
-    await getControllerAddressByStashAddress(chainAllAccountOnlyId, api);
+    await getControllerAddressByStashAddress(chainAllAccountOnlyId);
 
   let chainAllAccountMapToAccount: AccountArg[] = chainAllAccountOnlyId
     .map((item: any, index: number) => {
-      // let ttt = chainAllAccountOnlyControllId;
-      // let ttt22 = chainAllAccountOnlyId;
-      // let ttt33 = chainAllAccountMapToAccount;
       const controllAddress = chainAllAccountOnlyControllId[index];
       if (controllAddress) {
         /* 查询的到控制账户，接下来判断是不是同个账户 */
@@ -384,23 +383,23 @@ export async function queryEras({api}: {api: ApiPromise}) {
   ]);
 
   const totalAccount = [...allAccount, ...chainAllAccountMapToAccount];
-  // debugger
+
   //   debugger;
-  const members = await queryMember(validatorMapToMember, api, eraInfo);
-  // const accounts = await queryAccount(totalAccount, api);
+  const members = await queryMember(validatorMapToMember, eraInfo);
+  const accountRes = await queryAccount(totalAccount);
   //   debugger;
   const res: EraResult = {
     eraStat: {
       era: activeEra,
       startBlockTimestamp: activeEraStart,
     },
-    bondedPledges: pledgeAll, //完成
+    bondedPledges: pledgeAll, // 完成
     members,
     // validatorPledges: resValidators,
     nominators: totalNominators,
-    accounts: totalAccount,
+    accounts: accountRes,
   };
-  // debugger;
+
   return {
     response: res,
     realNominatorLen: filterRepeatNominator.length,

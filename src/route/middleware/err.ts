@@ -1,6 +1,7 @@
 import {getErr} from '../../util/get-result';
 import Log from '../../util/log';
 import {Response, Request, NextFunction} from 'express';
+
 export default (
   error: Error | string,
   req: Request,

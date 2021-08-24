@@ -4,9 +4,9 @@ import {ApiPromise, WsProvider} from '@polkadot/api';
 // ws conn
 class Conn {
   private api!: ApiPromise;
-  public IsLock!: boolean;
+  IsLock!: boolean;
   // init api
-  public async Init(url: string): Promise<ApiPromise> {
+  async Init(url: string): Promise<ApiPromise> {
     const wsProvider = new WsProvider(url);
     const api = await ApiPromise.create({
       provider: wsProvider,
@@ -14,22 +14,30 @@ class Conn {
     });
     this.api = api;
     this.IsLock = false;
-    return await api.isReadyOrError;
+    api.once('error', async () => {
+      this.Lock();
+      api.connect();
+      await api.isReady;
+      this.UnLock();
+    });
+    api.once('disconnected', async () => {
+      this.Lock();
+      api.connect();
+      await api.isReady;
+      this.UnLock();
+    });
+    return await this.api.isReady;
   }
   // get api
-  public async Api(): Promise<ApiPromise> {
-    // 等待解锁
-    while (this.IsLock === true) {
-      await this.api?.isReady;
-    }
+  async Api(): Promise<ApiPromise> {
     return this.api;
   }
   // lock api
-  public Lock() {
+  Lock() {
     this.IsLock = true;
   }
   // unlock api
-  public UnLock() {
+  UnLock() {
     this.IsLock = false;
   }
 }
