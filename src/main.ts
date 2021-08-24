@@ -4,6 +4,7 @@ import express from 'express';
 import route from './route';
 import {LISTEN_ADDR, LISTEN_PORT, WS_MAX_CONN, WS_NETWORK_URLS} from './config';
 import CrustPool from './crust-pool';
+import compression from 'compression';
 
 const app = express();
 
@@ -16,6 +17,8 @@ const app = express();
       throw err;
     })
     .then(res => {
+      app.set('x-powered-by', false);
+      app.use(compression());
       route(app);
       app.listen(LISTEN_PORT, () => {
         Log.info(`crust network conn suc: ${res.length} `);

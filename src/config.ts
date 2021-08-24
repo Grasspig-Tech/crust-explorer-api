@@ -20,7 +20,7 @@ export const LISTEN_PORT = 9527;
 export const LISTEN_ADDR = '0.0.0.0';
 
 // crust network 路径
-export const WS_MAX_CONN = 10; // 每个url开启的最大链接数量
+export const WS_MAX_CONN = 5; // 每个url开启的最大链接数量
 export const WS_NETWORK_URLS = [
   'wss://api.crust.network',
   // 'wss://rpc.pinknode.io/maxwell/aaa-bbb',

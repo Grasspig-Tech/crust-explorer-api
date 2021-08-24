@@ -41,12 +41,13 @@ class CrustPool {
       return con.IsLock === false;
     });
     if (conn === undefined) {
-      conn = new Conn();
-      await conn.Init(
-        this.urls[Math.floor(Math.random() * (this.urls.length + 1))]
-      );
-      if (this.conns.length <= 100) {
+      const len = this.urls.length;
+      if (this.conns.length <= len) {
+        conn = new Conn();
+        await conn.Init(this.urls[Math.floor(Math.random() * (len + 1))]);
         this.conns.push(conn);
+      } else {
+        conn = this.conns[Math.floor(Math.random() * (this.conns.length + 1))];
       }
     }
     const api = await conn.Api();

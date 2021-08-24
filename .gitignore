@@ -9,3 +9,4 @@ test/
 *.tar
 *.tar.gz
 *.lock
+*-lock.json

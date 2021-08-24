@@ -71,11 +71,10 @@ export async function queryEras() {
   /* 总数 = api.derive.staking.overview()返回的nextElected剔除验证人 + api.derive.staking.waitingInfo() */
   let totalWaitingValidatorAddress: any[] = [];
   /* 上边总数第一个 */
-  const filterWaitingValidator = overview.nextElected
-    .map((it: any) => it.toJSON())
-    .filter((item: any) => {
-      return !validatorAddresses.includes(item);
-    });
+  const filterWaitingValidator = overview.nextElected.filter((item: any) => {
+    item = item.toJSON();
+    return !validatorAddresses.includes(item);
+  });
   /* 查询每个候选验证人的控制账户地址 */
 
   const addStashFilterWaitingValidator = (
